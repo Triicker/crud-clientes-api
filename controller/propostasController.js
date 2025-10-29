@@ -10,18 +10,18 @@ const pool = require('../config/db');
 
 // 1. CREATE (Adicionar uma nova proposta)
 exports.createProposta = async (req, res) => {
-  // cliente_id, nome, valor (DECIMAL), enviada (BOOLEAN)
-  const { cliente_id, nome, valor, enviada } = req.body;
+  // RECEBEMOS O NOVO CAMPO: usuario_id (quem está a criar)
+  const { cliente_id, nome, valor, enviada, usuario_id } = req.body; 
+  // Nota: O campo created_at será preenchido automaticamente pelo DEFAULT NOW()
 
   try {
     const query = `
-      INSERT INTO propostas (cliente_id, nome, valor, enviada)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *;
+      INSERT INTO propostas (cliente_id, nome, valor, enviada, created_by)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *, created_at; -- Retorna também a data de criação
     `;
-    // O pg-node converte automaticamente valores booleanos (true/false) JS
-    // para o tipo BOOLEAN do PostgreSQL.
-    const values = [cliente_id, nome, valor, enviada];
+    // Passamos o usuario_id para a query
+    const values = [cliente_id, nome, valor, enviada, usuario_id]; 
 
     const result = await pool.query(query, values);
 
@@ -80,16 +80,24 @@ exports.getPropostaById = async (req, res) => {
 // 4. UPDATE (Atualizar uma proposta)
 exports.updateProposta = async (req, res) => {
   const { id } = req.params;
-  const { cliente_id, nome, valor, enviada } = req.body;
+  // RECEBEMOS O NOVO CAMPO: usuario_id (quem está a atualizar)
+  const { cliente_id, nome, valor, enviada, usuario_id } = req.body; 
 
   try {
     const query = `
       UPDATE propostas
-      SET cliente_id = $1, nome = $2, valor = $3, enviada = $4
+      SET 
+        cliente_id = $1, 
+        nome = $2, 
+        valor = $3, 
+        enviada = $4,
+        updated_at = NOW(), -- ATUALIZA A DATA E HORA AQUI
+        -- Poderias adicionar um campo 'updated_by' se fosse necessário
       WHERE id = $5
       RETURNING *;
     `;
-    const values = [cliente_id, nome, valor, enviada, id];
+    // Removemos 'usuario_id' dos valores pois não temos uma coluna 'updated_by'
+    const values = [cliente_id, nome, valor, enviada, id]; 
 
     const result = await pool.query(query, values);
 

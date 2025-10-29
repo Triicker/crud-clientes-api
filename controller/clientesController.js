@@ -66,6 +66,75 @@ exports.getClienteById = async (req, res) => {
   }
 };
 
+exports.getClienteRelatorio = async (req, res) => {
+    const { id } = req.params; // ID do Cliente
+
+    try {
+        // 1. OBTER DADOS PRINCIPAIS DO CLIENTE
+        const clienteResult = await pool.query('SELECT * FROM clientes WHERE id = $1', [id]);
+        
+        if (clienteResult.rows.length === 0) {
+            return res.status(404).json({ mensagem: 'Cliente não encontrado.' });
+        }
+        
+        const cliente = clienteResult.rows[0];
+
+        // 2. BUSCAR DADOS RELACIONADOS (usando o cliente.id)
+        
+        // A. EQUIPE PEDAGÓGICA (1:N)
+        const equipeQuery = `
+            SELECT funcao, nome, zap, email, rede_social 
+            FROM equipe_pedagogica 
+            WHERE cliente_id = $1 
+            ORDER BY nome
+        `;
+        const equipeResult = await pool.query(equipeQuery, [id]);
+
+        // B. CORPO DOCENTE (1:N)
+        const docentesQuery = `
+            SELECT funcao, nome, zap, email, escola 
+            FROM corpo_docente 
+            WHERE cliente_id = $1
+            ORDER BY nome
+        `;
+        const docentesResult = await pool.query(docentesQuery, [id]);
+
+        // C. PROPOSTAS (1:N)
+        const propostasQuery = `
+            SELECT nome, valor, enviada, created_at
+            FROM propostas 
+            WHERE cliente_id = $1
+            ORDER BY created_at DESC
+        `;
+        const propostasResult = await pool.query(propostasQuery, [id]);
+        
+        // D. DIAGNÓSTICO (1:N - pode ter múltiplos, mas geralmente um)
+        const diagnosticoQuery = `
+            SELECT classe, nivel_rede, ideb, satisfacao, impacto, created_at 
+            FROM diagnostico 
+            WHERE cliente_id = $1
+            ORDER BY created_at DESC
+        `;
+        const diagnosticoResult = await pool.query(diagnosticoQuery, [id]);
+
+        // 3. COMBINAR TODOS OS DADOS NO OBJETO FINAL
+        const relatorio = {
+            ...cliente,
+            equipe_pedagogica: equipeResult.rows,
+            corpo_docente: docentesResult.rows,
+            propostas: propostasResult.rows,
+            diagnosticos: diagnosticoResult.rows,
+            // Poderias adicionar aqui rede_numeros, programas_financeiros, etc.
+        };
+
+        res.status(200).json(relatorio);
+
+    } catch (error) {
+        console.error(`Erro ao gerar relatório do cliente com ID ${id}:`, error);
+        res.status(500).json({ erro: 'Erro interno do servidor ao gerar relatório.' });
+    }
+};
+
 // 4. UPDATE (Atualizar um cliente)
 exports.updateCliente = async (req, res) => {
   const { id } = req.params;

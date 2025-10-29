@@ -1,9 +1,5 @@
-// Arquivo: server.js
+require('dotenv').config();
 
-/**
- * Servidor principal da API.
- * Configura o Express, importa as rotas e inicia o servidor.
- */
 const express = require('express');
 const app = express();
 const PORT = 3000; // A porta onde o teu servidor irá correr
@@ -43,6 +39,9 @@ app.use('/api/influenciadores', influenciadoresRoutes);
 
 const usuariosRoutes = require('./routes/usuarios');
 app.use('/api/usuarios', usuariosRoutes);
+
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
 
 // Rota de teste simples
 app.get('/', (req, res) => {

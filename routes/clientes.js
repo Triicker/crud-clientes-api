@@ -26,5 +26,8 @@ router.put('/:id', clientesController.updateCliente);
 // Rota para DELETAR um cliente por ID (DELETE /api/clientes/:id)
 router.delete('/:id', clientesController.deleteCliente);
 
+router.get('/:id/relatorio', clientesController.getClienteRelatorio);
+
+
 // Exporta o router para ser usado no server.js
 module.exports = router;
