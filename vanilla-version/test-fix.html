@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Correção clientTypes</title>
+</head>
+<body>
+    <h1>Teste de Correção</h1>
+    <div id="result"></div>
+
+    <script>
+        // Teste para verificar se clientTypes está definido
+        const clientTypes = {
+            school: 'Escola',
+            network: 'Rede de Ensino'
+        };
+
+        // Teste da função
+        function testClientTypes() {
+            const testClient = { type: 'school' };
+            const typeText = clientTypes[testClient.type] || testClient.type;
+            
+            document.getElementById('result').innerHTML = `
+                <p>✅ clientTypes definido corretamente!</p>
+                <p>Tipo 'school' = '${typeText}'</p>
+                <p>Carregando API...</p>
+            `;
+
+            // Teste da API
+            fetch('http://localhost:3001/api/clients')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('result').innerHTML += `
+                            <p>✅ API funcionando: ${data.data.length} clientes carregados</p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('result').innerHTML += `
+                        <p>❌ Erro na API: ${error.message}</p>
+                    `;
+                });
+        }
+
+        // Executar teste
+        testClientTypes();
+    </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - API do IBGE</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px;
+        }
+        .debug { 
+            background: #f5f5f5; 
+            padding: 10px; 
+            margin: 10px 0; 
+            font-family: monospace;
+        }
+        select { 
+            padding: 8px 12px; 
+            margin: 5px; 
+            min-width: 200px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .filters-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste - Integração com API do IBGE</h1>
+    
+    <div class="test-section">
+        <h2>Status da API</h2>
+        <div class="debug" id="apiStatus">Testando conexão...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Filtros Dinâmicos</h2>
+        
+        <div class="filters-row">
+            <label for="estadosSelect">Estado:</label>
+            <select id="estadosSelect">
+                <option value="">Carregando estados...</option>
+            </select>
+            
+            <label for="cidadesSelect">Cidade:</label>
+            <select id="cidadesSelect">
+                <option value="">Selecione um estado primeiro</option>
+            </select>
+            
+            <label for="microregioesSelect">Microrregião:</label>
+            <select id="microregioesSelect">
+                <option value="">Selecione um estado primeiro</option>
+            </select>
+        </div>
+        
+        <div class="filters-row">
+            <button onclick="testEstados()">Testar Estados</button>
+            <button onclick="testMunicipios()">Testar Municípios (SP)</button>
+            <button onclick="testMicrorregioes()">Testar Microrregiões (SP)</button>
+            <button onclick="clearCache()">Limpar Cache</button>
+        </div>
+        
+        <div class="debug" id="filterDebug">Aguardando teste...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Cache Status</h2>
+        <div class="debug" id="cacheStatus">Verificando cache...</div>
+        <button onclick="updateCacheStatus()">Atualizar Status do Cache</button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="ibge-api.js"></script>
+    
+    <script>
+        const apiStatus = document.getElementById('apiStatus');
+        const filterDebug = document.getElementById('filterDebug');
+        const cacheStatus = document.getElementById('cacheStatus');
+        const estadosSelect = document.getElementById('estadosSelect');
+        const cidadesSelect = document.getElementById('cidadesSelect');
+        const microregioesSelect = document.getElementById('microregioesSelect');
+
+        // Inicialização
+        async function init() {
+            try {
+                apiStatus.innerHTML = '🔄 Testando conexão com IBGE...';
+                
+                // Testar conexão básica
+                await ibgeApiClient.getEstados();
+                apiStatus.innerHTML = '✅ Conexão com IBGE funcionando!';
+                
+                // Carregar filtros
+                await loadFilters();
+                
+            } catch (error) {
+                apiStatus.innerHTML = `❌ Erro na conexão: ${error.message}`;
+            }
+        }
+
+        // Carregar filtros
+        async function loadFilters() {
+            try {
+                // Carregar estados
+                await populateEstadosSelect(estadosSelect, true);
+                
+                // Event listeners
+                estadosSelect.addEventListener('change', async () => {
+                    const uf = estadosSelect.value;
+                    
+                    if (uf) {
+                        filterDebug.innerHTML = `🔄 Carregando dados para ${uf}...`;
+                        
+                        // Carregar cidades e microrregiões em paralelo
+                        await Promise.all([
+                            populateMunicipiosSelect(cidadesSelect, uf, true),
+                            populateMicroregioesSelect(microregioesSelect, uf, true)
+                        ]);
+                        
+                        filterDebug.innerHTML = `✅ Dados carregados para ${uf}`;
+                    } else {
+                        cidadesSelect.innerHTML = '<option value="">Selecione um estado primeiro</option>';
+                        microregioesSelect.innerHTML = '<option value="">Selecione um estado primeiro</option>';
+                        filterDebug.innerHTML = 'Filtros resetados';
+                    }
+                    
+                    updateCacheStatus();
+                });
+                
+                filterDebug.innerHTML = '✅ Filtros inicializados';
+                
+            } catch (error) {
+                filterDebug.innerHTML = `❌ Erro ao carregar filtros: ${error.message}`;
+            }
+        }
+
+        // Testes individuais
+        async function testEstados() {
+            try {
+                filterDebug.innerHTML = '🔄 Testando busca de estados...';
+                const estados = await ibgeApiClient.getEstados();
+                filterDebug.innerHTML = `✅ ${estados.length} estados carregados: ${estados.slice(0, 3).map(e => e.sigla).join(', ')}...`;
+            } catch (error) {
+                filterDebug.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function testMunicipios() {
+            try {
+                filterDebug.innerHTML = '🔄 Testando municípios de SP...';
+                const municipios = await ibgeApiClient.getMunicipiosPorEstado('SP');
+                filterDebug.innerHTML = `✅ ${municipios.length} municípios em SP: ${municipios.slice(0, 3).map(m => m.nome).join(', ')}...`;
+            } catch (error) {
+                filterDebug.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function testMicrorregioes() {
+            try {
+                filterDebug.innerHTML = '🔄 Testando microrregiões de SP...';
+                const microrregioes = await ibgeApiClient.getMicrorregioesPorEstado('SP');
+                filterDebug.innerHTML = `✅ ${microrregioes.length} microrregiões em SP: ${microrregioes.slice(0, 3).map(m => m.nome).join(', ')}...`;
+            } catch (error) {
+                filterDebug.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        function clearCache() {
+            ibgeApiClient.clearCache();
+            filterDebug.innerHTML = '🗑️ Cache limpo!';
+            updateCacheStatus();
+        }
+
+        function updateCacheStatus() {
+            const status = ibgeApiClient.getCacheStatus();
+            cacheStatus.innerHTML = `
+                📦 Cache Status:<br>
+                • Itens em cache: ${status.size}<br>
+                • Chaves: ${status.keys.join(', ')}<br>
+                • Timeout: ${status.timeout} minutos
+            `;
+        }
+
+        // Executar inicialização
+        init();
+        updateCacheStatus();
+    </script>
+</body>
+</html>

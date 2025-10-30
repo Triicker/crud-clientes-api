@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Sistema de Autenticação</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f4f8;
+        }
+        
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .test-result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 500;
+        }
+        
+        .test-button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste do Sistema de Autenticação</h1>
+        
+        <div id="results"></div>
+        
+        <h3>Testes Disponíveis:</h3>
+        <button class="test-button" onclick="testAuthManager()">Testar Auth Manager</button>
+        <button class="test-button" onclick="testUsers()">Testar Usuários</button>
+        <button class="test-button" onclick="testPermissions()">Testar Permissões</button>
+        <button class="test-button" onclick="testLogin()">Testar Login</button>
+        <button class="test-button" onclick="runAllTests()">🚀 Executar Todos</button>
+        
+        <hr style="margin: 30px 0;">
+        
+        <h3>Acesso ao Sistema:</h3>
+        <button class="test-button" onclick="window.open('login.html', '_blank')">
+            🔐 Abrir Tela de Login
+        </button>
+        <button class="test-button" onclick="window.open('demo.html', '_blank')">
+            📋 Abrir Demonstração
+        </button>
+    </div>
+
+    <!-- Scripts do sistema -->
+    <script src="auth-manager.js"></script>
+    
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function testAuthManager() {
+            clearResults();
+            addResult('🧪 Testando Auth Manager...', 'info');
+            
+            try {
+                if (typeof authManager === 'undefined') {
+                    addResult('❌ Auth Manager não encontrado!', 'error');
+                    return;
+                }
+                
+                addResult('✅ Auth Manager carregado com sucesso', 'success');
+                
+                // Testar se não está logado inicialmente
+                if (!authManager.isAuthenticated()) {
+                    addResult('✅ Sistema iniciado sem autenticação (correto)', 'success');
+                } else {
+                    addResult('⚠️ Sistema já possui usuário logado', 'info');
+                    const user = authManager.getCurrentUser();
+                    addResult(`Usuário atual: ${user.name} (${user.email})`, 'info');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Erro no Auth Manager: ${error.message}`, 'error');
+            }
+        }
+        
+        function testUsers() {
+            clearResults();
+            addResult('🧪 Testando Base de Usuários...', 'info');
+            
+            try {
+                const users = authManager.users;
+                addResult(`✅ ${users.length} usuários carregados`, 'success');
+                
+                // Contar por departamento
+                const departments = {};
+                users.forEach(user => {
+                    departments[user.department] = (departments[user.department] || 0) + 1;
+                });
+                
+                Object.entries(departments).forEach(([dept, count]) => {
+                    addResult(`📊 ${dept}: ${count} usuários`, 'info');
+                });
+                
+                // Testar níveis de acesso
+                const levels = {};
+                users.forEach(user => {
+                    levels[user.accessLevel] = (levels[user.accessLevel] || 0) + 1;
+                });
+                
+                Object.entries(levels).sort().forEach(([level, count]) => {
+                    const levelName = {5: 'Admin', 4: 'Diretor', 3: 'Gerente', 2: 'Consultor', 1: 'Usuário'}[level];
+                    addResult(`🎯 Nível ${level} (${levelName}): ${count} usuários`, 'info');
+                });
+                
+            } catch (error) {
+                addResult(`❌ Erro nos usuários: ${error.message}`, 'error');
+            }
+        }
+        
+        function testPermissions() {
+            clearResults();
+            addResult('🧪 Testando Sistema de Permissões...', 'info');
+            
+            try {
+                // Testar permissões sem login
+                const permissions = authManager.getUserPermissions();
+                const permCount = Object.values(permissions).filter(p => p === true).length;
+                
+                if (permCount === 0) {
+                    addResult('✅ Usuário sem login: 0 permissões (correto)', 'success');
+                } else {
+                    addResult(`⚠️ Usuário sem login tem ${permCount} permissões`, 'error');
+                }
+                
+                // Testar permissões de cada nível
+                const testUser = authManager.users.find(u => u.accessLevel === 5); // Admin
+                if (testUser) {
+                    authManager.currentUser = testUser;
+                    authManager.isLoggedIn = true;
+                    
+                    const adminPerms = authManager.getUserPermissions();
+                    const adminPermCount = Object.values(adminPerms).filter(p => p === true).length;
+                    
+                    addResult(`✅ Admin tem ${adminPermCount} permissões`, 'success');
+                    
+                    // Limpar
+                    authManager.currentUser = null;
+                    authManager.isLoggedIn = false;
+                }
+                
+            } catch (error) {
+                addResult(`❌ Erro nas permissões: ${error.message}`, 'error');
+            }
+        }
+        
+        function testLogin() {
+            clearResults();
+            addResult('🧪 Testando Processo de Login...', 'info');
+            
+            try {
+                // Testar login inválido
+                try {
+                    authManager.login('invalid@email.com', 'wrongpass');
+                    addResult('❌ Login inválido deveria falhar!', 'error');
+                } catch (e) {
+                    addResult('✅ Login inválido rejeitado corretamente', 'success');
+                }
+                
+                // Testar login válido
+                try {
+                    const user = authManager.login('admin@empresa.com', 'admin123');
+                    addResult(`✅ Login válido aceito: ${user.name}`, 'success');
+                    
+                    // Testar se está autenticado
+                    if (authManager.isAuthenticated()) {
+                        addResult('✅ Estado de autenticação correto', 'success');
+                    } else {
+                        addResult('❌ Estado de autenticação incorreto', 'error');
+                    }
+                    
+                    // Testar logout
+                    authManager.logout();
+                    if (!authManager.isAuthenticated()) {
+                        addResult('✅ Logout funcionou corretamente', 'success');
+                    } else {
+                        addResult('❌ Logout não funcionou', 'error');
+                    }
+                    
+                } catch (e) {
+                    addResult(`❌ Login válido falhou: ${e.message}`, 'error');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Erro no teste de login: ${error.message}`, 'error');
+            }
+        }
+        
+        function runAllTests() {
+            clearResults();
+            addResult('🚀 Executando todos os testes...', 'info');
+            
+            setTimeout(() => {
+                testAuthManager();
+                setTimeout(() => {
+                    testUsers();
+                    setTimeout(() => {
+                        testPermissions();
+                        setTimeout(() => {
+                            testLogin();
+                            addResult('🎉 Todos os testes concluídos!', 'success');
+                        }, 500);
+                    }, 500);
+                }, 500);
+            }, 500);
+        }
+        
+        // Executar teste básico ao carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            addResult('🔧 Sistema de teste carregado. Clique em um botão para testar.', 'info');
+        });
+    </script>
+</body>
+</html>

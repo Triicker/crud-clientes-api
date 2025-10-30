@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Clientes - Versão HTML</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header com autenticação -->
+        <header class="header">
+            <!-- User Header -->
+            <div id="userHeader" class="user-header" style="display: none;">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i data-lucide="user" class="avatar-icon"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name" id="userName">Usuário</span>
+                        <span class="user-role" id="userRole">Cargo</span>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <button id="userMenuButton" class="user-menu-button">
+                        <i data-lucide="settings" class="menu-icon"></i>
+                    </button>
+                    <button id="logoutButton" class="logout-button">
+                        <i data-lucide="log-out" class="logout-icon"></i>
+                        <span>Sair</span>
+                    </button>
+                </div>
+                <!-- Menu dropdown do usuário -->
+                <div id="userMenu" class="user-menu" style="display: none;">
+                    <div class="menu-item" id="userProfile">
+                        <i data-lucide="user" class="menu-item-icon"></i>
+                        <span>Meu Perfil</span>
+                    </div>
+                    <div class="menu-item" id="userStats">
+                        <i data-lucide="bar-chart-3" class="menu-item-icon"></i>
+                        <span>Estatísticas</span>
+                    </div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-item" id="logoutFromMenu">
+                        <i data-lucide="log-out" class="menu-item-icon"></i>
+                        <span>Sair do Sistema</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="title-section">
+                <h1 class="title">Sistema de Gerenciamento de Clientes</h1>
+                <div class="system-status" id="systemStatus">
+                    <span class="status-indicator online"></span>
+                    <span class="status-text">Sistema Online</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search Bar -->
+        <section class="search-section">
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input"
+                        placeholder="Buscar por nome, cidade, CNPJ, telefone..."
+                        autocomplete="off"
+                    >
+                    <button id="clearSearch" class="clear-button" style="display: none;">
+                        <i data-lucide="x" class="clear-icon"></i>
+                    </button>
+                </div>
+                
+                <div class="filters">
+                    <select id="stateFilter" class="filter-select">
+                        <option value="">Carregando estados...</option>
+                    </select>
+                    
+                    <select id="cityFilter" class="filter-select">
+                        <option value="">Todas as Cidades</option>
+                    </select>
+                    
+                    <select id="microregionFilter" class="filter-select">
+                        <option value="">Todas as Microrregiões</option>
+                    </select>
+                    
+                    <select id="typeFilter" class="filter-select">
+                        <option value="">Todos os Tipos</option>
+                        <option value="network">Rede de Ensino</option>
+                        <option value="school">Escola</option>
+                    </select>
+                    
+                    <button id="resetFilters" class="reset-button">
+                        <i data-lucide="refresh-cw" class="reset-icon"></i>
+                        Limpar Filtros
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Results Info -->
+            <div class="results-info">
+                <span id="resultsCount">Carregando...</span>
+                <span id="totalCount"></span>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Carregando dados dos clientes...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">
+                <i data-lucide="search-x"></i>
+            </div>
+            <h3>Nenhum cliente encontrado</h3>
+            <p>Tente ajustar os filtros ou termos de busca</p>
+        </div>
+
+        <!-- Client Table -->
+        <section class="table-section" id="tableSection" style="display: none;">
+            <div class="table-container">
+                <table class="client-table" id="clientTable">
+                    <thead>
+                        <tr class="table-header">
+                            <th class="th-client" scope="col">
+                                <button class="sort-button" data-column="name">
+                                    Cliente
+                                    <i data-lucide="chevron-up-down" class="sort-icon"></i>
+                                </button>
+                            </th>
+                            <th class="th-address" scope="col">
+                                <button class="sort-button" data-column="address">
+                                    Endereço
+                                    <i data-lucide="chevron-up-down" class="sort-icon"></i>
+                                </button>
+                            </th>
+                            <th class="th-phone" scope="col">
+                                <button class="sort-button" data-column="phone">
+                                    Telefone
+                                    <i data-lucide="chevron-up-down" class="sort-icon"></i>
+                                </button>
+                            </th>
+                            <th class="th-cnpj" scope="col">
+                                <button class="sort-button" data-column="cnpj">
+                                    CNPJ
+                                    <i data-lucide="chevron-up-down" class="sort-icon"></i>
+                                </button>
+                            </th>
+                            <th class="th-city" scope="col">
+                                <button class="sort-button" data-column="city">
+                                    Cidade
+                                    <i data-lucide="chevron-up-down" class="sort-icon"></i>
+                                </button>
+                            </th>
+                            <th class="th-state" scope="col">
+                                <button class="sort-button" data-column="state">
+                                    UF
+                                    <i data-lucide="chevron-up-down" class="sort-icon"></i>
+                                </button>
+                            </th>
+                            <th class="th-actions" scope="col">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pagination -->
+        <section class="pagination-section" id="paginationSection" style="display: none;">
+            <div class="pagination-info">
+                <span id="paginationInfo">Mostrando 0 de 0 registros</span>
+            </div>
+            
+            <div class="pagination-controls">
+                <button id="firstPage" class="pagination-button" disabled>
+                    <i data-lucide="chevrons-left"></i>
+                    Primeiro
+                </button>
+                <button id="prevPage" class="pagination-button" disabled>
+                    <i data-lucide="chevron-left"></i>
+                    Anterior
+                </button>
+                
+                <div class="page-numbers" id="pageNumbers">
+                    <!-- Dynamic page numbers will be inserted here -->
+                </div>
+                
+                <button id="nextPage" class="pagination-button" disabled>
+                    Próximo
+                    <i data-lucide="chevron-right"></i>
+                </button>
+                <button id="lastPage" class="pagination-button" disabled>
+                    Último
+                    <i data-lucide="chevrons-right"></i>
+                </button>
+            </div>
+            
+            <div class="per-page-selector">
+                <label for="perPageSelect">Por página:</label>
+                <select id="perPageSelect" class="per-page-select">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </section>
+    </div>
+
+    <!-- Client Detail Modal -->
+    <div id="clientModal" class="modal" style="display: none;">
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Detalhes do Cliente</h2>
+                <button id="closeModal" class="close-button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            
+            <div class="modal-footer">
+                <button id="editClient" class="action-button edit-button">
+                    <i data-lucide="edit"></i>
+                    Editar
+                </button>
+                <button id="deleteClient" class="action-button delete-button">
+                    <i data-lucide="trash-2"></i>
+                    Excluir
+                </button>
+                <button id="cancelModal" class="action-button cancel-button">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Edit Modal -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-backdrop" id="editModalBackdrop"></div>
+        <div class="modal-content edit-modal-content">
+            <div class="modal-header">
+                <h2 id="editModalTitle">Editar Cliente</h2>
+                <button id="closeEditModal" class="close-button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body edit-modal-body" id="editModalBody">
+                <form id="editClientForm" class="edit-form">
+                    <!-- Informações Básicas -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i data-lucide="user" class="section-icon"></i>
+                            Informações Básicas
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editName">Nome da Instituição *</label>
+                                <input type="text" id="editName" name="name" required class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editType">Tipo de Instituição *</label>
+                                <select id="editType" name="type" required class="form-select">
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="network">Rede de Ensino</option>
+                                    <option value="school">Escola Particular</option>
+                                    <option value="public">Escola Pública</option>
+                                    <option value="university">Universidade</option>
+                                    <option value="course">Curso Técnico</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editCnpj">CNPJ</label>
+                                <input type="text" id="editCnpj" name="cnpj" class="form-input cnpj-mask">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editSize">Porte da Empresa</label>
+                                <select id="editSize" name="size" class="form-select">
+                                    <option value="">Selecione o porte</option>
+                                    <option value="micro">Microempresa</option>
+                                    <option value="small">Pequena</option>
+                                    <option value="medium">Média</option>
+                                    <option value="large">Grande</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Localização -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i data-lucide="map-pin" class="section-icon"></i>
+                            Localização
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editState">Estado *</label>
+                                <select id="editState" name="state" required class="form-select">
+                                    <option value="">Carregando estados...</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editCity">Cidade *</label>
+                                <select id="editCity" name="city" required class="form-select">
+                                    <option value="">Selecione primeiro o estado</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editMicroregion">Microrregião</label>
+                                <select id="editMicroregion" name="microregion" class="form-select">
+                                    <option value="">Selecione a microrregião</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editAddress">Endereço Completo</label>
+                                <input type="text" id="editAddress" name="address" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contato -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i data-lucide="phone" class="section-icon"></i>
+                            Informações de Contato
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editPhone">Telefone Principal *</label>
+                                <input type="tel" id="editPhone" name="phone" required class="form-input phone-mask">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editSecondaryPhone">Telefone Secundário</label>
+                                <input type="tel" id="editSecondaryPhone" name="secondaryPhone" class="form-input phone-mask">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editEmail">Email</label>
+                                <input type="email" id="editEmail" name="email" class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editWebsite">Website</label>
+                                <input type="url" id="editWebsite" name="website" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informações Adicionais -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i data-lucide="info" class="section-icon"></i>
+                            Informações Adicionais
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editStudents">Número de Alunos</label>
+                                <input type="number" id="editStudents" name="students" min="0" class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editFoundedYear">Ano de Fundação</label>
+                                <input type="number" id="editFoundedYear" name="foundedYear" min="1800" max="2025" class="form-input">
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label for="editNotes">Observações</label>
+                                <textarea id="editNotes" name="notes" rows="3" class="form-textarea" placeholder="Observações adicionais sobre o cliente..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status e Responsável -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i data-lucide="settings" class="section-icon"></i>
+                            Status e Responsável
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editStatus">Status</label>
+                                <select id="editStatus" name="status" class="form-select">
+                                    <option value="active">Ativo</option>
+                                    <option value="inactive">Inativo</option>
+                                    <option value="prospect">Prospect</option>
+                                    <option value="negotiation">Em Negociação</option>
+                                    <option value="closed">Fechado</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editResponsible">Responsável</label>
+                                <select id="editResponsible" name="responsible" class="form-select">
+                                    <option value="">Selecione o responsável</option>
+                                    <!-- Options will be populated dynamically -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editPriority">Prioridade</label>
+                                <select id="editPriority" name="priority" class="form-select">
+                                    <option value="low">Baixa</option>
+                                    <option value="medium">Média</option>
+                                    <option value="high">Alta</option>
+                                    <option value="urgent">Urgente</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editLastContact">Último Contato</label>
+                                <input type="date" id="editLastContact" name="lastContact" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer edit-modal-footer">
+                <div class="form-actions">
+                    <button type="button" id="saveChanges" class="action-button save-button">
+                        <i data-lucide="save" class="button-icon"></i>
+                        Salvar Alterações
+                    </button>
+                    <button type="button" id="cancelEdit" class="action-button cancel-button">
+                        <i data-lucide="x" class="button-icon"></i>
+                        Cancelar
+                    </button>
+                </div>
+                
+                <div class="form-info">
+                    <span class="required-info">* Campos obrigatórios</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="auth-manager.js"></script>
+    <script src="ibge-api.js"></script>
+    <script src="api-client.js"></script>
+    <script src="app-manager.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Cliente - Sistema de Gestão</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <!-- Header com navegação -->
+    <header class="page-header">
+        <div class="header-container">
+            <div class="header-left">
+                <button class="back-button" onclick="window.history.back()">
+                    <i data-lucide="arrow-left"></i>
+                    <span>Voltar</span>
+                </button>
+                <div class="page-title">
+                    <h1>Detalhes do Cliente</h1>
+                    <p class="client-subtitle" id="clientSubtitle">Carregando informações...</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="action-button btn-edit" onclick="editClient()">
+                    <i data-lucide="edit"></i>
+                    <span>Editar Cliente</span>
+                </button>
+                <button class="action-button btn-print" onclick="printPage()">
+                    <i data-lucide="printer"></i>
+                    <span>Imprimir</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo principal -->
+    <main class="details-container">
+        <div class="details-content" id="detailsContent">
+            <!-- Loading state -->
+            <div class="loading-container" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>Carregando dados do cliente...</p>
+            </div>
+
+            <!-- Error state -->
+            <div class="error-container" id="errorState" style="display: none;">
+                <div class="error-content">
+                    <i data-lucide="alert-circle" class="error-icon"></i>
+                    <h2>Cliente não encontrado</h2>
+                    <p>O cliente solicitado não foi encontrado ou não existe.</p>
+                    <button class="action-button" onclick="window.location.href='index.html'">
+                        <i data-lucide="home"></i>
+                        <span>Voltar à Lista</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Client details will be loaded here -->
+            <div class="client-details-sections" id="clientDetailsSections" style="display: none;">
+                <!-- Content will be dynamically generated -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts: auth-manager.js must come first -->
+    <script src="auth-manager.js"></script>
+    <script src="ibge-api.js"></script>
+    <script src="api-client.js"></script>
+    <script src="client-details.js"></script>
+</body>
+</html>

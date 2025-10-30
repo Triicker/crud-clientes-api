@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Sistema de Autenticação</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .demo-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .demo-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .demo-section {
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .user-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .user-name {
+            font-weight: 600;
+        }
+        
+        .user-level {
+            background: rgba(34, 197, 94, 0.8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .user-level.admin { background: rgba(220, 38, 38, 0.8); }
+        .user-level.director { background: rgba(124, 58, 237, 0.8); }
+        .user-level.manager { background: rgba(5, 150, 105, 0.8); }
+        .user-level.consultant { background: rgba(8, 145, 178, 0.8); }
+        .user-level.user { background: rgba(107, 114, 128, 0.8); }
+        
+        .user-details {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .user-email {
+            color: #fbbf24;
+            font-weight: 500;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .demo-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .demo-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .demo-button.primary {
+            background: #22c55e;
+            border-color: #16a34a;
+        }
+        
+        .demo-button.primary:hover {
+            background: #16a34a;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 600px) {
+            .demo-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .user-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .demo-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">🚀 Sistema de Autenticação Hierárquica</h1>
+            <p class="demo-subtitle">
+                Demonstração completa do sistema com 22 usuários em estrutura organizacional
+            </p>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="section-title">📋 Funcionalidades Implementadas</h2>
+            <ul class="feature-list">
+                <li>Sistema de login completo com interface moderna</li>
+                <li>22 usuários pré-configurados em hierarquia organizacional</li>
+                <li>7 departamentos com diferentes níveis de acesso</li>
+                <li>Controle de permissões baseado em cargos</li>
+                <li>Interface responsiva para desktop e mobile</li>
+                <li>Gerenciamento de sessão e autenticação segura</li>
+                <li>Dashboard personalizado por tipo de usuário</li>
+                <li>Suporte a usuários de campo com localização</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">👥 Estrutura Organizacional</h2>
+            
+            <div class="user-list">
+                <!-- Administração -->
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-name">Carlos Silva</span>
+                        <span class="user-level admin">Nível 5</span>
+                    </div>
+                    <div class="user-details">
+                        <div><strong>Cargo:</strong> Administrador Geral</div>
+                        <div><strong>Email:</strong> <span class="user-email">admin@empresa.com</span></div>
+                        <div><strong>Departamento:</strong> Administração</div>
+                    </div>
+                </div>
+
+                <!-- Diretores -->
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-name">Ana Santos</span>
+                        <span class="user-level director">Nível 4</span>
+                    </div>
+                    <div class="user-details">
+                        <div><strong>Cargo:</strong> Diretora de Marketing</div>
+                        <div><strong>Email:</strong> <span class="user-email">marketing@empresa.com</span></div>
+                        <div><strong>Departamento:</strong> Marketing</div>
+                    </div>
+                </div>
+
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-name">Roberto Lima</span>
+                        <span class="user-level director">Nível 4</span>
+                    </div>
+                    <div class="user-details">
+                        <div><strong>Cargo:</strong> Diretor de Vendas</div>
+                        <div><strong>Email:</strong> <span class="user-email">vendas@empresa.com</span></div>
+                        <div><strong>Departamento:</strong> Comercial</div>
+                    </div>
+                </div>
+
+                <!-- Gerentes -->
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-name">Mariana Costa</span>
+                        <span class="user-level manager">Nível 3</span>
+                    </div>
+                    <div class="user-details">
+                        <div><strong>Cargo:</strong> Gerente Regional Norte</div>
+                        <div><strong>Email:</strong> <span class="user-email">norte@empresa.com</span></div>
+                        <div><strong>Departamento:</strong> Comercial</div>
+                    </div>
+                </div>
+
+                <!-- Consultores -->
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-name">João Oliveira</span>
+                        <span class="user-level consultant">Nível 2</span>
+                    </div>
+                    <div class="user-details">
+                        <div><strong>Cargo:</strong> Consultor de Vendas</div>
+                        <div><strong>Email:</strong> <span class="user-email">consultor1@empresa.com</span></div>
+                        <div><strong>Departamento:</strong> Comercial</div>
+                    </div>
+                </div>
+
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-name">Laura Ferreira</span>
+                        <span class="user-level consultant">Nível 2</span>
+                    </div>
+                    <div class="user-details">
+                        <div><strong>Cargo:</strong> Consultora Pedagógica</div>
+                        <div><strong>Email:</strong> <span class="user-email">pedagogo@empresa.com</span></div>
+                        <div><strong>Departamento:</strong> Pedagógico</div>
+                    </div>
+                </div>
+
+                <!-- Especialistas -->
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-name">Pedro Santos</span>
+                        <span class="user-level user">Nível 1</span>
+                    </div>
+                    <div class="user-details">
+                        <div><strong>Cargo:</strong> Especialista em Tráfego</div>
+                        <div><strong>Email:</strong> <span class="user-email">trafego@empresa.com</span></div>
+                        <div><strong>Departamento:</strong> Marketing</div>
+                    </div>
+                </div>
+
+                <!-- Representantes de Campo -->
+                <div class="user-card">
+                    <div class="user-info">
+                        <span class="user-name">Sofia Ribeiro</span>
+                        <span class="user-level user">Nível 1 📱</span>
+                    </div>
+                    <div class="user-details">
+                        <div><strong>Cargo:</strong> Representante de Campo</div>
+                        <div><strong>Email:</strong> <span class="user-email">campo1@empresa.com</span></div>
+                        <div><strong>Departamento:</strong> Comercial</div>
+                        <div><strong>Mobile:</strong> ✅ Com localização</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">🎯 Como Testar o Sistema</h2>
+            <p style="margin-bottom: 20px;">
+                O sistema está completamente funcional. Você pode fazer login com qualquer usuário usando
+                os botões de demonstração na tela de login ou inserindo as credenciais manualmente.
+            </p>
+            
+            <p style="margin-bottom: 20px;">
+                <strong>Exemplo de credenciais:</strong><br>
+                📧 Email: admin@empresa.com<br>
+                🔑 Senha: admin123
+            </p>
+            
+            <p style="color: #fbbf24; font-weight: 500;">
+                💡 Dica: Use os botões de usuário demo na tela de login para preenchimento automático!
+            </p>
+        </div>
+
+        <div class="demo-buttons">
+            <a href="login.html" class="demo-button primary">
+                🔐 Acessar Sistema de Login
+            </a>
+            <a href="index.html" class="demo-button">
+                🏠 Sistema Principal (requer login)
+            </a>
+        </div>
+    </div>
+</body>
+</html>

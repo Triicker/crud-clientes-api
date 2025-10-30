@@ -11,6 +11,15 @@ require('./config/db');
 // Isso permite que o Express entenda os dados JSON enviados nas requisições POST e PUT
 app.use(express.json());
 
+// Middleware para servir arquivos estáticos da pasta 'vanilla-version' (compatível cross-platform)
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'vanilla-version')));
+
+// Health Check Endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
+
 // --- ROTAS ---
 // Vamos criar a rota para clientes no próximo passo
 const clientesRoutes = require('./routes/clientes');
@@ -42,11 +51,6 @@ app.use('/api/usuarios', usuariosRoutes);
 
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
-
-// Rota de teste simples
-app.get('/', (req, res) => {
-  res.send('🎉 Servidor de CRUD Clientes em execução! Acesse /api/clientes');
-});
 
 
 // Inicia o servidor

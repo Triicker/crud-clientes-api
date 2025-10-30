@@ -36,7 +36,17 @@ exports.createCliente = async (req, res) => {
 // 2. READ ALL (Obter todos os clientes)
 exports.getAllClientes = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM clientes ORDER BY nome ASC');
+    const query = `
+      SELECT
+        c.*,
+        (SELECT json_agg(ep) FROM equipe_pedagogica ep WHERE ep.cliente_id = c.id) as equipe_pedagogica,
+        (SELECT json_agg(cd) FROM corpo_docente cd WHERE cd.cliente_id = c.id) as corpo_docente,
+        (SELECT json_agg(p) FROM propostas p WHERE p.cliente_id = c.id) as propostas,
+        (SELECT json_agg(d) FROM diagnostico d WHERE d.cliente_id = c.id) as diagnosticos
+      FROM clientes c
+      ORDER BY c.nome ASC
+    `;
+    const result = await pool.query(query);
 
     // Resposta de sucesso (código 200: OK)
     res.status(200).json(result.rows);

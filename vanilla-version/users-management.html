@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Usuários - Sistema Educacional</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos específicos para gestão de usuários */
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .users-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .users-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .user-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            transition: box-shadow 0.3s;
+        }
+
+        .user-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .user-role {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .user-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .user-detail {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .user-detail strong {
+            color: #333;
+        }
+
+        .hierarchy-level {
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+
+        .level-1 { background: #f44336; color: white; } /* Admin */
+        .level-2 { background: #ff9800; color: white; } /* Diretor */
+        .level-3 { background: #2196f3; color: white; } /* Gerente */
+        .level-4 { background: #4caf50; color: white; } /* Coordenador */
+        .level-5 { background: #9c27b0; color: white; } /* Consultor */
+        .level-6 { background: #607d8b; color: white; } /* Auxiliar */
+
+        .department-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        .dept-interno { background: #e3f2fd; color: #1976d2; }
+        .dept-vendas { background: #f3e5f5; color: #7b1fa2; }
+        .dept-pedagogico { background: #e8f5e8; color: #388e3c; }
+        .dept-campo { background: #fff3e0; color: #f57c00; }
+
+        .users-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s;
+        }
+
+        .btn-edit {
+            background: #2196f3;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #1976d2;
+        }
+
+        .btn-permissions {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-permissions:hover {
+            background: #f57c00;
+        }
+
+        .btn-deactivate {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-deactivate:hover {
+            background: #d32f2f;
+        }
+
+        .mobile-access {
+            color: #4caf50;
+            font-size: 0.9em;
+        }
+
+        .no-mobile-access {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .territory-info {
+            background: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="users-header">
+            <div>
+                <h1>Gestão de Usuários</h1>
+                <p>Sistema de hierarquia organizacional</p>
+            </div>
+            <button class="btn btn-primary" onclick="showAddUserModal()">
+                + Adicionar Usuário
+            </button>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="users-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">Total de Usuários</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeUsers">0</div>
+                <div class="stat-label">Usuários Ativos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="fieldUsers">0</div>
+                <div class="stat-label">Equipe de Campo</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="adminUsers">0</div>
+                <div class="stat-label">Administradores</div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="users-filters">
+            <div class="filter-group">
+                <label for="searchUser">Buscar:</label>
+                <input type="text" id="searchUser" class="search-box" placeholder="Nome, email ou código">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterRole">Cargo:</label>
+                <select id="filterRole">
+                    <option value="">Todos os cargos</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterDepartment">Departamento:</label>
+                <select id="filterDepartment">
+                    <option value="">Todos</option>
+                    <option value="interno">Interno</option>
+                    <option value="vendas">Vendas</option>
+                    <option value="pedagogico">Pedagógico</option>
+                    <option value="campo">Campo</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterLevel">Nível:</label>
+                <select id="filterLevel">
+                    <option value="">Todos os níveis</option>
+                    <option value="1">1 - Administrador</option>
+                    <option value="2">2 - Diretor</option>
+                    <option value="3">3 - Gerente</option>
+                    <option value="4">4 - Coordenador</option>
+                    <option value="5">5 - Consultor</option>
+                    <option value="6">6 - Auxiliar</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="resetFilters()">Limpar</button>
+        </div>
+
+        <!-- Lista de Usuários -->
+        <div id="usersList" class="users-container">
+            <!-- Usuários serão carregados aqui -->
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingUsers" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Carregando usuários...</p>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar/editar usuário -->
+    <div id="userModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="modalTitle">Adicionar Usuário</h2>
+                <button class="close-btn" onclick="closeUserModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="userForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userFullName">Nome Completo:</label>
+                            <input type="text" id="userFullName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="userEmail">Email:</label>
+                            <input type="email" id="userEmail" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userPhone">Telefone:</label>
+                            <input type="tel" id="userPhone">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="userWhatsapp">WhatsApp:</label>
+                            <input type="tel" id="userWhatsapp">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userRole">Cargo:</label>
+                            <select id="userRole" required>
+                                <!-- Será populado via JavaScript -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="userManager">Supervisor:</label>
+                            <select id="userManager">
+                                <option value="">Selecione o supervisor</option>
+                                <!-- Será populado via JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userEmployeeCode">Código do Funcionário:</label>
+                            <input type="text" id="userEmployeeCode">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="userDepartment">Departamento:</label>
+                            <select id="userDepartment">
+                                <option value="interno">Interno</option>
+                                <option value="vendas">Vendas</option>
+                                <option value="pedagogico">Pedagógico</option>
+                                <option value="campo">Campo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userTerritory">Território de Atuação:</label>
+                        <select id="userTerritory" multiple>
+                            <!-- Estados serão carregados dinamicamente -->
+                        </select>
+                        <small>Use Ctrl+Click para selecionar múltiplos estados</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userSpecializations">Especializações:</label>
+                        <input type="text" id="userSpecializations" placeholder="Ex: educacao_ambiental, gamificacao (separado por vírgula)">
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="saveUser()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados globais
+        let usersData = [];
+        let rolesData = [];
+        let currentEditingUserId = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+            loadRoles();
+            setupEventListeners();
+            loadStates();
+        });
+
+        // Event listeners
+        function setupEventListeners() {
+            document.getElementById('searchUser').addEventListener('input', filterUsers);
+            document.getElementById('filterRole').addEventListener('change', filterUsers);
+            document.getElementById('filterDepartment').addEventListener('change', filterUsers);
+            document.getElementById('filterLevel').addEventListener('change', filterUsers);
+        }
+
+        // Carregar usuários (simulado - será integrado com backend)
+        async function loadUsers() {
+            showLoading('loadingUsers');
+            
+            try {
+                // Simulação de dados - será substituído por chamada real à API
+                usersData = [
+                    {
+                        id: '1',
+                        full_name: 'Gabriel Silva (Admin)',
+                        email: 'admin@empresa.com.br',
+                        phone: '(11) 99999-9999',
+                        whatsapp: '(11) 99999-9999',
+                        employee_code: 'ADM001',
+                        department: 'interno',
+                        role_name: 'Administrador',
+                        level_hierarchy: 1,
+                        can_access_web: true,
+                        can_access_mobile: false,
+                        territory: ['BR'],
+                        manager_name: null,
+                        active: true
+                    },
+                    {
+                        id: '2',
+                        full_name: 'Maria Fernanda Marketing',
+                        email: 'maria.marketing@empresa.com.br',
+                        phone: '(11) 98888-8888',
+                        whatsapp: '(11) 98888-8888',
+                        employee_code: 'DIR001',
+                        department: 'interno',
+                        role_name: 'Diretor de Marketing',
+                        level_hierarchy: 2,
+                        can_access_web: true,
+                        can_access_mobile: false,
+                        territory: ['SP', 'RJ'],
+                        manager_name: 'Gabriel Silva (Admin)',
+                        active: true
+                    },
+                    {
+                        id: '3',
+                        full_name: 'João Representante SP Interior',
+                        email: 'joao.rep.sp@empresa.com.br',
+                        phone: '(15) 99999-5555',
+                        whatsapp: '(15) 99999-5555',
+                        employee_code: 'REP001',
+                        department: 'campo',
+                        role_name: 'Representante de Campo',
+                        level_hierarchy: 5,
+                        can_access_web: false,
+                        can_access_mobile: true,
+                        territory: ['SP'],
+                        manager_name: 'Anderson Campo SP',
+                        active: true
+                    }
+                ];
+                
+                displayUsers(usersData);
+                updateStats();
+                
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                showError('Erro ao carregar usuários');
+            } finally {
+                hideLoading('loadingUsers');
+            }
+        }
+
+        // Carregar roles para os filtros
+        async function loadRoles() {
+            try {
+                // Simulação - será integrado com backend
+                rolesData = [
+                    { id: '1', name: 'Administrador', level_hierarchy: 1 },
+                    { id: '2', name: 'Diretor de Marketing', level_hierarchy: 2 },
+                    { id: '3', name: 'Diretor de Vendas', level_hierarchy: 2 },
+                    { id: '4', name: 'Gerente de Vendas Estadual', level_hierarchy: 3 },
+                    { id: '5', name: 'Coordenador de Vendas', level_hierarchy: 4 },
+                    { id: '6', name: 'Consultor de Vendas', level_hierarchy: 5 },
+                    { id: '7', name: 'Representante de Campo', level_hierarchy: 5 }
+                ];
+                
+                populateRoleSelect();
+                
+            } catch (error) {
+                console.error('Erro ao carregar cargos:', error);
+            }
+        }
+
+        // Popular select de cargos
+        function populateRoleSelect() {
+            const filterRole = document.getElementById('filterRole');
+            const userRole = document.getElementById('userRole');
+            
+            rolesData.forEach(role => {
+                const option1 = new Option(role.name, role.id);
+                const option2 = new Option(role.name, role.id);
+                filterRole.appendChild(option1);
+                userRole.appendChild(option2);
+            });
+        }
+
+        // Exibir usuários
+        function displayUsers(users) {
+            const usersList = document.getElementById('usersList');
+            
+            if (users.length === 0) {
+                usersList.innerHTML = '<div class="no-data">Nenhum usuário encontrado</div>';
+                return;
+            }
+            
+            usersList.innerHTML = users.map(user => `
+                <div class="user-card">
+                    <div class="user-header">
+                        <div>
+                            <span class="user-name">${user.full_name}</span>
+                            <span class="hierarchy-level level-${user.level_hierarchy}">
+                                Nível ${user.level_hierarchy}
+                            </span>
+                            <span class="department-badge dept-${user.department}">
+                                ${getDepartmentLabel(user.department)}
+                            </span>
+                        </div>
+                        <div class="user-role">${user.role_name}</div>
+                    </div>
+                    
+                    <div class="user-details">
+                        <div class="user-detail">
+                            <strong>Email:</strong> ${user.email}
+                        </div>
+                        <div class="user-detail">
+                            <strong>Telefone:</strong> ${user.phone || 'Não informado'}
+                        </div>
+                        <div class="user-detail">
+                            <strong>WhatsApp:</strong> ${user.whatsapp || 'Não informado'}
+                        </div>
+                        <div class="user-detail">
+                            <strong>Código:</strong> ${user.employee_code || 'Não informado'}
+                        </div>
+                        <div class="user-detail">
+                            <strong>Supervisor:</strong> ${user.manager_name || 'N/A'}
+                        </div>
+                        <div class="user-detail">
+                            <strong>Acesso Mobile:</strong> 
+                            <span class="${user.can_access_mobile ? 'mobile-access' : 'no-mobile-access'}">
+                                ${user.can_access_mobile ? '✓ Sim' : '✗ Não'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    ${user.territory ? `
+                        <div class="territory-info">
+                            <strong>Território:</strong> ${Array.isArray(user.territory) ? user.territory.join(', ') : user.territory}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="user-actions">
+                        <button class="action-btn btn-edit" onclick="editUser('${user.id}')">
+                            Editar
+                        </button>
+                        <button class="action-btn btn-permissions" onclick="managePermissions('${user.id}')">
+                            Permissões
+                        </button>
+                        <button class="action-btn btn-deactivate" onclick="toggleUserStatus('${user.id}')">
+                            ${user.active ? 'Desativar' : 'Ativar'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filtrar usuários
+        function filterUsers() {
+            const search = document.getElementById('searchUser').value.toLowerCase();
+            const roleFilter = document.getElementById('filterRole').value;
+            const departmentFilter = document.getElementById('filterDepartment').value;
+            const levelFilter = document.getElementById('filterLevel').value;
+            
+            const filtered = usersData.filter(user => {
+                const matchSearch = !search || 
+                    user.full_name.toLowerCase().includes(search) ||
+                    user.email.toLowerCase().includes(search) ||
+                    (user.employee_code && user.employee_code.toLowerCase().includes(search));
+                
+                const matchRole = !roleFilter || user.role_name === rolesData.find(r => r.id === roleFilter)?.name;
+                const matchDepartment = !departmentFilter || user.department === departmentFilter;
+                const matchLevel = !levelFilter || user.level_hierarchy.toString() === levelFilter;
+                
+                return matchSearch && matchRole && matchDepartment && matchLevel;
+            });
+            
+            displayUsers(filtered);
+        }
+
+        // Resetar filtros
+        function resetFilters() {
+            document.getElementById('searchUser').value = '';
+            document.getElementById('filterRole').value = '';
+            document.getElementById('filterDepartment').value = '';
+            document.getElementById('filterLevel').value = '';
+            displayUsers(usersData);
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            document.getElementById('totalUsers').textContent = usersData.length;
+            document.getElementById('activeUsers').textContent = usersData.filter(u => u.active).length;
+            document.getElementById('fieldUsers').textContent = usersData.filter(u => u.can_access_mobile).length;
+            document.getElementById('adminUsers').textContent = usersData.filter(u => u.level_hierarchy === 1).length;
+        }
+
+        // Funções auxiliares
+        function getDepartmentLabel(department) {
+            const labels = {
+                'interno': 'Interno',
+                'vendas': 'Vendas',
+                'pedagogico': 'Pedagógico',
+                'campo': 'Campo'
+            };
+            return labels[department] || department;
+        }
+
+        // Modal functions
+        function showAddUserModal() {
+            currentEditingUserId = null;
+            document.getElementById('modalTitle').textContent = 'Adicionar Usuário';
+            document.getElementById('userForm').reset();
+            document.getElementById('userModal').style.display = 'flex';
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+            currentEditingUserId = null;
+        }
+
+        function editUser(userId) {
+            const user = usersData.find(u => u.id === userId);
+            if (!user) return;
+            
+            currentEditingUserId = userId;
+            document.getElementById('modalTitle').textContent = 'Editar Usuário';
+            
+            // Preencher formulário
+            document.getElementById('userFullName').value = user.full_name;
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userPhone').value = user.phone || '';
+            document.getElementById('userWhatsapp').value = user.whatsapp || '';
+            document.getElementById('userEmployeeCode').value = user.employee_code || '';
+            document.getElementById('userDepartment').value = user.department;
+            
+            document.getElementById('userModal').style.display = 'flex';
+        }
+
+        function saveUser() {
+            // Implementar salvamento (integração com backend)
+            console.log('Salvando usuário...');
+            closeUserModal();
+            // Recarregar lista após salvar
+            loadUsers();
+        }
+
+        function managePermissions(userId) {
+            // Implementar gestão de permissões
+            alert('Funcionalidade de permissões será implementada');
+        }
+
+        function toggleUserStatus(userId) {
+            if (confirm('Tem certeza que deseja alterar o status deste usuário?')) {
+                // Implementar alteração de status
+                console.log('Alterando status do usuário:', userId);
+                loadUsers();
+            }
+        }
+
+        // Carregar estados para o select de território
+        async function loadStates() {
+            try {
+                const states = [
+                    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 
+                    'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 
+                    'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+                ];
+                
+                const territorySelect = document.getElementById('userTerritory');
+                states.forEach(state => {
+                    const option = new Option(state, state);
+                    territorySelect.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar estados:', error);
+            }
+        }
+
+        // Funções utilitárias
+        function showLoading(elementId) {
+            document.getElementById(elementId).style.display = 'flex';
+        }
+
+        function hideLoading(elementId) {
+            document.getElementById(elementId).style.display = 'none';
+        }
+
+        function showError(message) {
+            alert(message); // Substituir por toast/notification mais elegante
+        }
+    </script>
+</body>
+</html>

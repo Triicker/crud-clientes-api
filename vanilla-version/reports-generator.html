@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Relatórios - Sistema Educacional</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos específicos para relatórios */
+        .reports-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .report-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-category {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .report-category:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+            color: white;
+        }
+
+        .icon-clients { background: #4CAF50; }
+        .icon-segmentation { background: #2196F3; }
+        .icon-performance { background: #FF9800; }
+        .icon-financial { background: #9C27B0; }
+        .icon-geographic { background: #00BCD4; }
+        .icon-comparative { background: #795548; }
+
+        .category-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .category-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .report-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .report-btn {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .report-btn:hover {
+            background: #e0e0e0;
+            border-color: #bbb;
+        }
+
+        .report-btn.selected {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .filters-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .actions-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .format-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .format-btn {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .format-btn:hover {
+            border-color: #4CAF50;
+            background: #f8f9fa;
+        }
+
+        .format-btn.selected {
+            border-color: #4CAF50;
+            background: #4CAF50;
+            color: white;
+        }
+
+        .generate-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .preview-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .preview-content {
+            min-height: 300px;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .report-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .report-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .report-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .summary-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .quick-reports {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .quick-report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .quick-report-item {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-report-item:hover {
+            border-color: #4CAF50;
+            background: #f8f9fa;
+        }
+
+        .quick-report-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .quick-report-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .quick-report-desc {
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="reports-header">
+            <div>
+                <h1>Gerador de Relatórios</h1>
+                <p>Relatórios automáticos e análises detalhadas</p>
+            </div>
+        </div>
+
+        <!-- Relatórios Rápidos -->
+        <div class="quick-reports">
+            <h2>Relatórios Rápidos</h2>
+            <div class="quick-report-grid">
+                <div class="quick-report-item" onclick="generateQuickReport('dashboard')">
+                    <div class="quick-report-icon">📊</div>
+                    <div class="quick-report-title">Dashboard Executivo</div>
+                    <div class="quick-report-desc">Visão geral completa</div>
+                </div>
+                <div class="quick-report-item" onclick="generateQuickReport('clients-summary')">
+                    <div class="quick-report-icon">🏫</div>
+                    <div class="quick-report-title">Resumo de Clientes</div>
+                    <div class="quick-report-desc">Lista detalhada por estado</div>
+                </div>
+                <div class="quick-report-item" onclick="generateQuickReport('segmentation')">
+                    <div class="quick-report-icon">📈</div>
+                    <div class="quick-report-title">Segmentação</div>
+                    <div class="quick-report-desc">Análise por modalidades</div>
+                </div>
+                <div class="quick-report-item" onclick="generateQuickReport('geographic')">
+                    <div class="quick-report-icon">🗺️</div>
+                    <div class="quick-report-title">Análise Geográfica</div>
+                    <div class="quick-report-desc">Distribuição regional</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categorias de Relatórios Detalhados -->
+        <div class="report-categories">
+            <div class="report-category">
+                <div class="category-header">
+                    <div class="category-icon icon-clients">🏫</div>
+                    <div class="category-title">Relatórios de Clientes</div>
+                </div>
+                <div class="category-description">
+                    Análises detalhadas sobre a base de clientes, equipes pedagógicas e informações gerais.
+                </div>
+                <div class="report-options">
+                    <button class="report-btn" data-type="clients-detailed">Lista Completa</button>
+                    <button class="report-btn" data-type="clients-by-state">Por Estado</button>
+                    <button class="report-btn" data-type="educational-teams">Equipes Pedagógicas</button>
+                    <button class="report-btn" data-type="teachers-analysis">Análise Docente</button>
+                    <button class="report-btn" data-type="contacts-export">Export Contatos</button>
+                </div>
+            </div>
+
+            <div class="report-category">
+                <div class="category-header">
+                    <div class="category-icon icon-segmentation">📊</div>
+                    <div class="category-title">Segmentação Educacional</div>
+                </div>
+                <div class="category-description">
+                    Análises por modalidades de ensino, turnos, infraestrutura e características específicas.
+                </div>
+                <div class="report-options">
+                    <button class="report-btn" data-type="modality-analysis">Por Modalidade</button>
+                    <button class="report-btn" data-type="infrastructure-report">Infraestrutura</button>
+                    <button class="report-btn" data-type="technology-level">Nível Tecnológico</button>
+                    <button class="report-btn" data-type="special-needs">Necessidades Especiais</button>
+                    <button class="report-btn" data-type="bilingual-programs">Programas Bilíngues</button>
+                </div>
+            </div>
+
+            <div class="report-category">
+                <div class="category-header">
+                    <div class="category-icon icon-performance">📈</div>
+                    <div class="category-title">Performance & Indicadores</div>
+                </div>
+                <div class="category-description">
+                    Relatórios de desempenho educacional, IDEB, aprovação e indicadores de qualidade.
+                </div>
+                <div class="report-options">
+                    <button class="report-btn" data-type="ideb-analysis">Análise IDEB</button>
+                    <button class="report-btn" data-type="performance-trends">Tendências</button>
+                    <button class="report-btn" data-type="approval-rates">Taxa Aprovação</button>
+                    <button class="report-btn" data-type="dropout-analysis">Evasão Escolar</button>
+                    <button class="report-btn" data-type="comparative-performance">Comparativo</button>
+                </div>
+            </div>
+
+            <div class="report-category">
+                <div class="category-header">
+                    <div class="category-icon icon-financial">💰</div>
+                    <div class="category-title">Análise Comercial</div>
+                </div>
+                <div class="category-description">
+                    Relatórios comerciais, potencial de mercado e análise de oportunidades.
+                </div>
+                <div class="report-options">
+                    <button class="report-btn" data-type="market-potential">Potencial de Mercado</button>
+                    <button class="report-btn" data-type="sales-opportunities">Oportunidades</button>
+                    <button class="report-btn" data-type="territory-analysis">Análise Territorial</button>
+                    <button class="report-btn" data-type="client-profile">Perfil de Clientes</button>
+                </div>
+            </div>
+
+            <div class="report-category">
+                <div class="category-header">
+                    <div class="category-icon icon-geographic">🗺️</div>
+                    <div class="category-title">Análise Geográfica</div>
+                </div>
+                <div class="category-description">
+                    Distribuição geográfica, densidade urbana, conectividade e características regionais.
+                </div>
+                <div class="report-options">
+                    <button class="report-btn" data-type="regional-distribution">Distribuição Regional</button>
+                    <button class="report-btn" data-type="urban-density">Densidade Urbana</button>
+                    <button class="report-btn" data-type="connectivity-analysis">Conectividade</button>
+                    <button class="report-btn" data-type="socioeconomic-profile">Perfil Socioeconômico</button>
+                </div>
+            </div>
+
+            <div class="report-category">
+                <div class="category-header">
+                    <div class="category-icon icon-comparative">📋</div>
+                    <div class="category-title">Relatórios Comparativos</div>
+                </div>
+                <div class="category-description">
+                    Análises comparativas entre regiões, modalidades e períodos temporais.
+                </div>
+                <div class="report-options">
+                    <button class="report-btn" data-type="regional-comparison">Comparação Regional</button>
+                    <button class="report-btn" data-type="temporal-analysis">Análise Temporal</button>
+                    <button class="report-btn" data-type="benchmark-analysis">Benchmark</button>
+                    <button class="report-btn" data-type="growth-analysis">Análise de Crescimento</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel de Filtros -->
+        <div class="filters-panel" id="filtersPanel" style="display: none;">
+            <h3>Configurar Relatório</h3>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="filterState">Estado:</label>
+                    <select id="filterState" multiple>
+                        <!-- Será populado dinamicamente -->
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterSegment">Segmento:</label>
+                    <select id="filterSegment" multiple>
+                        <!-- Será populado dinamicamente -->
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterModality">Modalidade:</label>
+                    <select id="filterModality" multiple>
+                        <!-- Será populado dinamicamente -->
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterYear">Ano Letivo:</label>
+                    <select id="filterYear">
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterDateRange">Período:</label>
+                    <input type="month" id="filterDateStart" placeholder="Data inicial">
+                    <input type="month" id="filterDateEnd" placeholder="Data final">
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel de Ações -->
+        <div class="actions-panel" id="actionsPanel" style="display: none;">
+            <div class="format-options">
+                <div class="format-btn selected" data-format="html">
+                    <span>🌐</span> Visualizar
+                </div>
+                <div class="format-btn" data-format="pdf">
+                    <span>📄</span> PDF
+                </div>
+                <div class="format-btn" data-format="excel">
+                    <span>📊</span> Excel
+                </div>
+                <div class="format-btn" data-format="csv">
+                    <span>📋</span> CSV
+                </div>
+            </div>
+            <div class="generate-section">
+                <button class="btn btn-secondary" onclick="cancelReport()">Cancelar</button>
+                <button class="btn btn-primary" onclick="generateReport()" id="generateBtn">Gerar Relatório</button>
+            </div>
+        </div>
+
+        <!-- Painel de Preview -->
+        <div class="preview-panel" id="previewPanel">
+            <div class="preview-header">
+                <h3 id="reportTitle">Relatório de Análise</h3>
+                <div>
+                    <button class="btn btn-secondary" onclick="closePreview()">Fechar</button>
+                    <button class="btn btn-primary" onclick="downloadReport()">Download</button>
+                </div>
+            </div>
+            <div class="preview-content" id="previewContent">
+                <!-- Conteúdo do relatório será inserido aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>Gerando Relatório</h3>
+            <p>Processando dados e criando análises...</p>
+        </div>
+    </div>
+
+    <script>
+        // Estado global da aplicação
+        let selectedReportType = null;
+        let selectedFormat = 'html';
+        let reportData = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadFilterOptions();
+        });
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Event listeners para botões de relatório
+            document.querySelectorAll('.report-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectReportType(this.getAttribute('data-type'), this);
+                });
+            });
+
+            // Event listeners para formatos
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectFormat(this.getAttribute('data-format'), this);
+                });
+            });
+        }
+
+        // Selecionar tipo de relatório
+        function selectReportType(type, element) {
+            // Remover seleção anterior
+            document.querySelectorAll('.report-btn.selected').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Selecionar novo tipo
+            element.classList.add('selected');
+            selectedReportType = type;
+            
+            // Mostrar painéis de configuração
+            document.getElementById('filtersPanel').style.display = 'block';
+            document.getElementById('actionsPanel').style.display = 'flex';
+            
+            // Configurar filtros específicos para o tipo de relatório
+            configureFiltersForReportType(type);
+        }
+
+        // Selecionar formato
+        function selectFormat(format, element) {
+            // Remover seleção anterior
+            document.querySelectorAll('.format-btn.selected').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Selecionar novo formato
+            element.classList.add('selected');
+            selectedFormat = format;
+            
+            // Atualizar texto do botão
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.textContent = format === 'html' ? 'Visualizar Relatório' : 'Gerar ' + format.toUpperCase();
+        }
+
+        // Configurar filtros específicos
+        function configureFiltersForReportType(type) {
+            // Mostrar/ocultar filtros baseado no tipo de relatório
+            const filters = document.querySelectorAll('.filter-group');
+            
+            switch(type) {
+                case 'clients-by-state':
+                    // Focar no filtro de estado
+                    break;
+                case 'modality-analysis':
+                    // Focar no filtro de modalidade
+                    break;
+                case 'performance-trends':
+                    // Focar no filtro de período
+                    break;
+                default:
+                    // Mostrar todos os filtros
+                    break;
+            }
+        }
+
+        // Carregar opções dos filtros
+        async function loadFilterOptions() {
+            try {
+                // Carregar estados
+                const states = [
+                    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+                    'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+                    'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+                ];
+                
+                const stateSelect = document.getElementById('filterState');
+                states.forEach(state => {
+                    const option = new Option(state, state);
+                    stateSelect.appendChild(option);
+                });
+                
+                // Carregar segmentos
+                const segments = [
+                    'EDUCAÇÃO INFANTIL', 'FUNDAMENTAL I', 'FUNDAMENTAL II',
+                    'ENSINO MÉDIO', 'EJA', 'TÉCNICO', 'SUPERIOR'
+                ];
+                
+                const segmentSelect = document.getElementById('filterSegment');
+                segments.forEach(segment => {
+                    const option = new Option(segment, segment);
+                    segmentSelect.appendChild(option);
+                });
+                
+                // Carregar modalidades
+                const modalities = [
+                    'Presencial Regular', 'Presencial Integral', 'EAD Síncrono',
+                    'EAD Assíncrono', 'Híbrido Rotacional', 'Híbrido Flex',
+                    'Educação Especial Inclusiva', 'Educação Bilíngue'
+                ];
+                
+                const modalitySelect = document.getElementById('filterModality');
+                modalities.forEach(modality => {
+                    const option = new Option(modality, modality);
+                    modalitySelect.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar opções de filtro:', error);
+            }
+        }
+
+        // Gerar relatório rápido
+        async function generateQuickReport(type) {
+            showLoading();
+            
+            try {
+                // Simular geração de relatório
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                const reportContent = generateQuickReportContent(type);
+                showPreview(getReportTitle(type), reportContent);
+                
+            } catch (error) {
+                console.error('Erro ao gerar relatório rápido:', error);
+                alert('Erro ao gerar relatório. Tente novamente.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Gerar conteúdo do relatório rápido
+        function generateQuickReportContent(type) {
+            switch(type) {
+                case 'dashboard':
+                    return generateDashboardReport();
+                case 'clients-summary':
+                    return generateClientsSummaryReport();
+                case 'segmentation':
+                    return generateSegmentationReport();
+                case 'geographic':
+                    return generateGeographicReport();
+                default:
+                    return '<p>Relatório não implementado.</p>';
+            }
+        }
+
+        // Gerar dashboard executivo
+        function generateDashboardReport() {
+            return `
+                <div class="report-summary">
+                    <h3>Resumo Executivo</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-value">127</div>
+                            <div class="summary-label">Total de Clientes</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">45,673</div>
+                            <div class="summary-label">Total de Alunos</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">23</div>
+                            <div class="summary-label">Estados Atendidos</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">5.8</div>
+                            <div class="summary-label">IDEB Médio</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-placeholder">
+                    📊 Gráfico de Distribuição por Estado
+                </div>
+
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Estado</th>
+                            <th>Clientes</th>
+                            <th>Alunos</th>
+                            <th>Modalidades</th>
+                            <th>IDEB Médio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>SP</td>
+                            <td>45</td>
+                            <td>18,234</td>
+                            <td>6</td>
+                            <td>6.2</td>
+                        </tr>
+                        <tr>
+                            <td>RJ</td>
+                            <td>23</td>
+                            <td>9,876</td>
+                            <td>5</td>
+                            <td>5.9</td>
+                        </tr>
+                        <tr>
+                            <td>MG</td>
+                            <td>19</td>
+                            <td>7,543</td>
+                            <td>4</td>
+                            <td>5.7</td>
+                        </tr>
+                        <tr>
+                            <td>BA</td>
+                            <td>15</td>
+                            <td>5,432</td>
+                            <td>3</td>
+                            <td>5.4</td>
+                        </tr>
+                        <tr>
+                            <td>Outros</td>
+                            <td>25</td>
+                            <td>4,588</td>
+                            <td>7</td>
+                            <td>5.6</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Gerar relatório de resumo de clientes
+        function generateClientsSummaryReport() {
+            return `
+                <div class="report-summary">
+                    <h3>Análise da Base de Clientes</h3>
+                    <p>Relatório detalhado dos clientes por região e características.</p>
+                </div>
+
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Tipo</th>
+                            <th>Cidade</th>
+                            <th>Estado</th>
+                            <th>Total Alunos</th>
+                            <th>Equipe Pedagógica</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rede Municipal de São Paulo</td>
+                            <td>Rede</td>
+                            <td>São Paulo</td>
+                            <td>SP</td>
+                            <td>12,500</td>
+                            <td>8</td>
+                            <td>✅ Ativo</td>
+                        </tr>
+                        <tr>
+                            <td>Escola Pedro I</td>
+                            <td>Escola</td>
+                            <td>Rio de Janeiro</td>
+                            <td>RJ</td>
+                            <td>550</td>
+                            <td>5</td>
+                            <td>✅ Ativo</td>
+                        </tr>
+                        <tr>
+                            <td>Colégio Santa Maria</td>
+                            <td>Escola</td>
+                            <td>Belo Horizonte</td>
+                            <td>MG</td>
+                            <td>525</td>
+                            <td>6</td>
+                            <td>✅ Ativo</td>
+                        </tr>
+                        <tr>
+                            <td>Instituto Educacional Bahia</td>
+                            <td>Rede</td>
+                            <td>Salvador</td>
+                            <td>BA</td>
+                            <td>890</td>
+                            <td>7</td>
+                            <td>✅ Ativo</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="chart-placeholder">
+                    📈 Gráfico de Crescimento da Base de Clientes
+                </div>
+            `;
+        }
+
+        // Gerar relatório de segmentação
+        function generateSegmentationReport() {
+            return `
+                <div class="report-summary">
+                    <h3>Análise de Segmentação Educacional</h3>
+                    <p>Distribuição por modalidades e características de ensino.</p>
+                </div>
+
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Modalidade</th>
+                            <th>Total Clientes</th>
+                            <th>Total Alunos</th>
+                            <th>% Urbano</th>
+                            <th>% Rural</th>
+                            <th>Necessidades Especiais</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Presencial Regular</td>
+                            <td>89</td>
+                            <td>35,234</td>
+                            <td>78%</td>
+                            <td>22%</td>
+                            <td>12%</td>
+                        </tr>
+                        <tr>
+                            <td>Presencial Integral</td>
+                            <td>23</td>
+                            <td>6,789</td>
+                            <td>85%</td>
+                            <td>15%</td>
+                            <td>8%</td>
+                        </tr>
+                        <tr>
+                            <td>EAD Síncrono</td>
+                            <td>8</td>
+                            <td>2,134</td>
+                            <td>92%</td>
+                            <td>8%</td>
+                            <td>3%</td>
+                        </tr>
+                        <tr>
+                            <td>Híbrido Rotacional</td>
+                            <td>5</td>
+                            <td>1,234</td>
+                            <td>95%</td>
+                            <td>5%</td>
+                            <td>5%</td>
+                        </tr>
+                        <tr>
+                            <td>Educação Especial</td>
+                            <td>2</td>
+                            <td>282</td>
+                            <td>70%</td>
+                            <td>30%</td>
+                            <td>100%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="chart-placeholder">
+                    🔄 Gráfico de Pizza - Distribuição por Modalidade
+                </div>
+            `;
+        }
+
+        // Gerar relatório geográfico
+        function generateGeographicReport() {
+            return `
+                <div class="report-summary">
+                    <h3>Análise Geográfica</h3>
+                    <p>Distribuição regional e características socioeconômicas.</p>
+                </div>
+
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Região</th>
+                            <th>Estados</th>
+                            <th>Clientes</th>
+                            <th>População Atendida</th>
+                            <th>Conectividade Média</th>
+                            <th>Nível Socioeconômico</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sudeste</td>
+                            <td>SP, RJ, MG, ES</td>
+                            <td>87</td>
+                            <td>36,145</td>
+                            <td>Alta</td>
+                            <td>B+</td>
+                        </tr>
+                        <tr>
+                            <td>Nordeste</td>
+                            <td>BA, PE, CE, etc</td>
+                            <td>23</td>
+                            <td>6,892</td>
+                            <td>Média</td>
+                            <td>C</td>
+                        </tr>
+                        <tr>
+                            <td>Sul</td>
+                            <td>PR, SC, RS</td>
+                            <td>12</td>
+                            <td>2,134</td>
+                            <td>Alta</td>
+                            <td>B</td>
+                        </tr>
+                        <tr>
+                            <td>Centro-Oeste</td>
+                            <td>GO, MT, MS, DF</td>
+                            <td>3</td>
+                            <td>345</td>
+                            <td>Média</td>
+                            <td>B-</td>
+                        </tr>
+                        <tr>
+                            <td>Norte</td>
+                            <td>AM, PA, etc</td>
+                            <td>2</td>
+                            <td>157</td>
+                            <td>Baixa</td>
+                            <td>C</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="chart-placeholder">
+                    🗺️ Mapa de Calor - Concentração de Clientes
+                </div>
+            `;
+        }
+
+        // Gerar relatório detalhado
+        async function generateReport() {
+            if (!selectedReportType) {
+                alert('Selecione um tipo de relatório primeiro.');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                // Coletar filtros
+                const filters = collectFilters();
+                
+                // Simular geração de relatório
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                if (selectedFormat === 'html') {
+                    const reportContent = generateDetailedReportContent(selectedReportType, filters);
+                    showPreview(getReportTitle(selectedReportType), reportContent);
+                } else {
+                    // Para outros formatos, simular download
+                    simulateDownload(selectedFormat);
+                }
+                
+            } catch (error) {
+                console.error('Erro ao gerar relatório:', error);
+                alert('Erro ao gerar relatório. Tente novamente.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Coletar filtros aplicados
+        function collectFilters() {
+            return {
+                states: Array.from(document.getElementById('filterState').selectedOptions).map(o => o.value),
+                segments: Array.from(document.getElementById('filterSegment').selectedOptions).map(o => o.value),
+                modalities: Array.from(document.getElementById('filterModality').selectedOptions).map(o => o.value),
+                year: document.getElementById('filterYear').value,
+                dateStart: document.getElementById('filterDateStart').value,
+                dateEnd: document.getElementById('filterDateEnd').value
+            };
+        }
+
+        // Gerar conteúdo detalhado do relatório
+        function generateDetailedReportContent(type, filters) {
+            // Por ora, retornar conteúdo simulado
+            return `
+                <div class="report-summary">
+                    <h3>Relatório Detalhado: ${getReportTitle(type)}</h3>
+                    <p>Filtros aplicados: ${JSON.stringify(filters, null, 2)}</p>
+                </div>
+                
+                <div class="chart-placeholder">
+                    📊 Análise detalhada será implementada aqui
+                </div>
+                
+                <p>Este é um relatório simulado. A implementação completa será integrada com o backend para gerar dados reais.</p>
+            `;
+        }
+
+        // Obter título do relatório
+        function getReportTitle(type) {
+            const titles = {
+                'dashboard': 'Dashboard Executivo',
+                'clients-summary': 'Resumo de Clientes',
+                'segmentation': 'Análise de Segmentação',
+                'geographic': 'Análise Geográfica',
+                'clients-detailed': 'Lista Detalhada de Clientes',
+                'modality-analysis': 'Análise por Modalidade',
+                'ideb-analysis': 'Análise IDEB',
+                'market-potential': 'Potencial de Mercado'
+            };
+            return titles[type] || 'Relatório Personalizado';
+        }
+
+        // Mostrar preview do relatório
+        function showPreview(title, content) {
+            document.getElementById('reportTitle').textContent = title;
+            document.getElementById('previewContent').innerHTML = content;
+            document.getElementById('previewPanel').style.display = 'block';
+            
+            // Scroll para o preview
+            document.getElementById('previewPanel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Fechar preview
+        function closePreview() {
+            document.getElementById('previewPanel').style.display = 'none';
+        }
+
+        // Cancelar relatório
+        function cancelReport() {
+            // Limpar seleções
+            document.querySelectorAll('.report-btn.selected').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            selectedReportType = null;
+            
+            // Ocultar painéis
+            document.getElementById('filtersPanel').style.display = 'none';
+            document.getElementById('actionsPanel').style.display = 'none';
+            closePreview();
+        }
+
+        // Simular download
+        function simulateDownload(format) {
+            const fileName = `relatorio_${selectedReportType}_${new Date().toISOString().split('T')[0]}.${format}`;
+            
+            // Criar blob simulado
+            const content = `Relatório em formato ${format.toUpperCase()}\nGerado em: ${new Date().toLocaleString()}`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            
+            // Criar link de download
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert(`Relatório ${format.toUpperCase()} baixado com sucesso!`);
+        }
+
+        // Download do relatório atual
+        function downloadReport() {
+            if (selectedFormat === 'html') {
+                // Para HTML, converter para PDF ou manter como HTML
+                simulateDownload('pdf');
+            } else {
+                simulateDownload(selectedFormat);
+            }
+        }
+
+        // Funções utilitárias
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
