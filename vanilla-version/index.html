@@ -6,6 +6,7 @@
     <title>Sistema de Clientes - Versão HTML</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-styles.css">
+    <link rel="stylesheet" href="edit-modal-styles.css">
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -103,10 +104,16 @@
                 </div>
             </div>
             
-            <!-- Results Info -->
-            <div class="results-info">
-                <span id="resultsCount">Carregando...</span>
-                <span id="totalCount"></span>
+            <!-- Action Bar with Add Client Button -->
+            <div class="action-bar">
+                <div class="results-info">
+                    <span id="resultsCount">Carregando...</span>
+                    <span id="totalCount"></span>
+                </div>
+                <button id="addClientButton" class="btn-add-client">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Incluir Cliente</span>
+                </button>
             </div>
         </section>
 
@@ -139,7 +146,7 @@
                             </th>
                             <th class="th-address" scope="col">
                                 <button class="sort-button" data-column="address">
-                                    Endereço
+                                    Observações
                                     <i data-lucide="chevron-up-down" class="sort-icon"></i>
                                 </button>
                             </th>
@@ -252,16 +259,15 @@
 
     <!-- Client Edit Modal -->
     <div id="editModal" class="modal" style="display: none;">
-        <div class="modal-backdrop" id="editModalBackdrop"></div>
-        <div class="modal-content edit-modal-content">
+        <div class="modal-backdrop" id="editModalBackdrop" style="display:none;"></div>
+        <div class="modal-content edit-modal-content" style="display:none;">
             <div class="modal-header">
                 <h2 id="editModalTitle">Editar Cliente</h2>
                 <button id="closeEditModal" class="close-button">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            
-            <div class="modal-body edit-modal-body" id="editModalBody">
+            <div class="modal-body edit-modal-body" id="editModalBody" style="display:none;">
                 <form id="editClientForm" class="edit-form">
                     <!-- Informações Básicas -->
                     <div class="form-section">
@@ -439,19 +445,18 @@
             </div>
             
             <div class="modal-footer edit-modal-footer">
+                <div class="form-info">
+                    <span class="required-info">* Campos obrigatórios</span>
+                </div>
                 <div class="form-actions">
-                    <button type="button" id="saveChanges" class="action-button save-button">
-                        <i data-lucide="save" class="button-icon"></i>
-                        Salvar Alterações
-                    </button>
-                    <button type="button" id="cancelEdit" class="action-button cancel-button">
+                    <button type="button" id="cancelEdit" class="cancel-button">
                         <i data-lucide="x" class="button-icon"></i>
                         Cancelar
                     </button>
-                </div>
-                
-                <div class="form-info">
-                    <span class="required-info">* Campos obrigatórios</span>
+                    <button type="button" id="saveChanges" class="save-button">
+                        <i data-lucide="save" class="button-icon"></i>
+                        Salvar Alterações
+                    </button>
                 </div>
             </div>
         </div>
@@ -465,6 +470,7 @@
     <script src="ibge-api.js"></script>
     <script src="api-client.js"></script>
     <script src="app-manager.js"></script>
+    <script src="edit-modal.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

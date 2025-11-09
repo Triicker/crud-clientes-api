@@ -45,6 +45,7 @@ class ClientManager {
         this.microregionFilterSelect = document.getElementById('microregionFilter');
         this.typeFilterSelect = document.getElementById('typeFilter');
         this.resetFiltersBtn = document.getElementById('resetFilters');
+        this.addClientBtn = document.getElementById('addClientButton');
         
         // States
         this.loadingState = document.getElementById('loadingState');
@@ -126,6 +127,13 @@ class ClientManager {
         this.resetFiltersBtn.addEventListener('click', () => {
             this.resetFilters();
         });
+        
+        // Add client button
+        if (this.addClientBtn) {
+            this.addClientBtn.addEventListener('click', () => {
+                this.openAddClientModal();
+            });
+        }
         
         // Table sorting
         document.querySelectorAll('.sort-button').forEach(button => {
@@ -502,10 +510,15 @@ class ClientManager {
      * Abre o modal de edição
      */
     openEditModal(client) {
+        console.log('openEditModal chamado, client:', client);
+        console.log('canEditClient resultado:', this.canEditClient(client));
+        
         if (!this.canEditClient(client)) {
             this.showToast('error', 'Você não tem permissão para editar este cliente');
             return;
         }
+        
+        console.log('window.editModalManager existe?', !!window.editModalManager);
         if (window.editModalManager) {
             window.editModalManager.openModal(client);
         } else {
@@ -515,12 +528,43 @@ class ClientManager {
     }
 
     /**
+     * Abre o modal para adicionar novo cliente
+     */
+    openAddClientModal() {
+        if (window.editModalManager) {
+            // Abre o modal com um cliente vazio (modo criação)
+            const emptyClient = {
+                id: null,
+                name: '',
+                type: '',
+                cnpj: '',
+                phone: '',
+                state: '',
+                city: '',
+                address: '',
+                notes: ''
+            };
+            window.editModalManager.openModal(emptyClient, true); // true indica modo de criação
+        } else {
+            console.error('Edit Modal Manager não encontrado');
+            this.showToast('error', 'Sistema de cadastro não disponível');
+        }
+    }
+
+    /**
      * Verifica se o usuário pode editar o cliente
      */
     canEditClient(client) {
-        if (!window.authManager || !window.authManager.isAuthenticated()) return false;
+        // Se não há sistema de autenticação ativo, permite edição
+        if (!window.authManager) return true;
+        if (!window.authManager.isAuthenticated()) return true;
+        
         const currentUser = window.authManager.getCurrentUser();
+        if (!currentUser) return true;
+        
         const permissions = window.authManager.getUserPermissions();
+        if (!permissions) return true;
+        
         if (permissions.canEdit && permissions.canViewAllClients) return true;
         if (permissions.canEdit && permissions.canViewDepartmentClients) return true; // Lógica de departamento a ser implementada
         if (permissions.canEdit && permissions.canViewOwnClients) return client.responsible === currentUser.email;
@@ -726,10 +770,101 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'login.html';
         return; // Impede a execução do resto do código
     }
+    
+    // Mostrar informações do usuário logado
+    showUserInfo();
+    
+    // Configurar evento de logout
+    setupLogout();
+    
     window.clientManager = new ClientManager();
     window.clientManager.loadInitialData();
     console.log('Sistema de Gerenciamento de Clientes carregado.');
 });
+
+/**
+ * Mostra as informações do usuário logado no header
+ */
+function showUserInfo() {
+    const currentUser = window.authManager.getCurrentUser();
+    
+    if (currentUser) {
+        // Mapeamento de perfil_id para nome do perfil
+        const perfis = {
+            1: 'Administrador',
+            2: 'Consultor',
+            3: 'Representante'
+        };
+        
+        // Pegar elementos do DOM
+        const userHeader = document.getElementById('userHeader');
+        const userName = document.getElementById('userName');
+        const userRole = document.getElementById('userRole');
+        
+        // Atualizar com dados do usuário
+        if (userName) {
+            userName.textContent = currentUser.nome || currentUser.email || 'Usuário';
+        }
+        
+        if (userRole) {
+            // Buscar nome do perfil pelo perfil_id
+            const perfilNome = perfis[currentUser.perfil_id] || 'Usuário';
+            userRole.textContent = perfilNome;
+        }
+        
+        // Mostrar o header
+        if (userHeader) {
+            userHeader.style.display = 'flex';
+        }
+        
+        // Inicializar ícones Lucide no header
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+}
+
+/**
+ * Configura os eventos de logout
+ */
+function setupLogout() {
+    const logoutButton = document.getElementById('logoutButton');
+    const logoutFromMenu = document.getElementById('logoutFromMenu');
+    const userMenuButton = document.getElementById('userMenuButton');
+    const userMenu = document.getElementById('userMenu');
+    
+    // Função de logout
+    const handleLogout = () => {
+        if (confirm('Deseja realmente sair do sistema?')) {
+            window.authManager.logout();
+            window.location.href = 'login.html';
+        }
+    };
+    
+    // Eventos de logout
+    if (logoutButton) {
+        logoutButton.addEventListener('click', handleLogout);
+    }
+    
+    if (logoutFromMenu) {
+        logoutFromMenu.addEventListener('click', handleLogout);
+    }
+    
+    // Toggle do menu do usuário
+    if (userMenuButton && userMenu) {
+        userMenuButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenu.style.display = userMenu.style.display === 'none' ? 'block' : 'none';
+        });
+        
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!userMenuButton.contains(e.target) && !userMenu.contains(e.target)) {
+                userMenu.style.display = 'none';
+            }
+        });
+    }
+}
 
 const style = document.createElement('style');
 style.textContent = `

@@ -16,6 +16,12 @@ router.post('/', clientesController.createCliente);
 // Rota para LER todos os clientes (GET /api/clientes)
 router.get('/', clientesController.getAllClientes);
 
+// ⚠️ IMPORTANTE: Rotas mais específicas devem vir ANTES das rotas genéricas com parâmetros
+
+// Rota para LER relatório completo de um cliente (GET /api/clientes/:id/relatorio)
+// DEVE estar ANTES de /:id para não ser capturada por essa rota genérica
+router.get('/:id/relatorio', clientesController.getClienteRelatorio);
+
 // Rota para LER um cliente específico por ID (GET /api/clientes/:id)
 // O ':id' é um parâmetro dinâmico na URL
 router.get('/:id', clientesController.getClienteById);
@@ -25,8 +31,6 @@ router.put('/:id', clientesController.updateCliente);
 
 // Rota para DELETAR um cliente por ID (DELETE /api/clientes/:id)
 router.delete('/:id', clientesController.deleteCliente);
-
-router.get('/:id/relatorio', clientesController.getClienteRelatorio);
 
 
 // Exporta o router para ser usado no server.js

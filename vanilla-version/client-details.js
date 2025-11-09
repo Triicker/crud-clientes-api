@@ -187,20 +187,11 @@ class ClientDetailsManager {
                     <i data-lucide="users"></i>
                     <h3>Dados Equipe Pedagógica</h3>
                     <div class="section-actions">
-                        <button class="action-btn btn-document" 
-                                title="Enviar Documento" 
-                                onclick="clientDetailsManager.handleSectionAction('document', 'educational', 'Todos')">
-                            <i data-lucide="file-text"></i>
-                        </button>
-                        <button class="action-btn btn-whatsapp" 
-                                title="Enviar WhatsApp" 
-                                onclick="clientDetailsManager.handleSectionAction('whatsapp', 'educational', 'Todos')">
-                            <i data-lucide="message-circle"></i>
-                        </button>
-                        <button class="action-btn btn-share" 
-                                title="Compartilhar" 
-                                onclick="clientDetailsManager.handleSectionAction('share', 'educational', 'Todos')">
-                            <i data-lucide="share-2"></i>
+                        <button class="action-btn btn-primary" 
+                                title="Enviar aos Selecionados" 
+                                onclick="clientDetailsManager.openSendModal('educational')">
+                            <i data-lucide="send"></i>
+                            <span>Enviar</span>
                         </button>
                     </div>
                 </div>
@@ -208,6 +199,12 @@ class ClientDetailsManager {
                     <table class="team-table">
                         <thead>
                             <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" 
+                                           id="selectAllEducational" 
+                                           onchange="clientDetailsManager.toggleSelectAll('educational', this.checked)"
+                                           title="Selecionar Todos">
+                                </th>
                                 <th>Função</th>
                                 <th>Nome</th>
                                 <th>WhatsApp</th>
@@ -217,8 +214,18 @@ class ClientDetailsManager {
                             </tr>
                         </thead>
                         <tbody>
-                            ${this.client.educationalTeam.map(member => `
+                            ${this.client.educationalTeam.map((member, index) => `
                             <tr>
+                                <td>
+                                    <input type="checkbox" 
+                                           class="contact-checkbox educational-checkbox" 
+                                           data-section="educational"
+                                           data-index="${index}"
+                                           data-name="${this.escapeHtml(member.name)}"
+                                           data-email="${this.escapeHtml(member.email)}"
+                                           data-whatsapp="${member.whatsapp.replace(/[^\d]/g, '')}"
+                                           onchange="clientDetailsManager.updateSelectAllState('educational')">
+                                </td>
                                 <td class="team-role">${this.escapeHtml(member.role)}</td>
                                 <td class="team-name">${this.escapeHtml(member.name)}</td>
                                 <td class="team-whatsapp">
@@ -236,17 +243,17 @@ class ClientDetailsManager {
                                     <div class="actions-group">
                                         <button class="action-btn btn-document" 
                                                 title="Enviar Documento" 
-                                                onclick="clientDetailsManager.handleSectionAction('document', 'educational', '${member.name}')">
+                                                onclick="clientDetailsManager.sendToContact('document', '${this.escapeHtml(member.name)}', '${this.escapeHtml(member.email)}', '${member.whatsapp.replace(/[^\d]/g, '')}')">
                                             <i data-lucide="file-text"></i>
                                         </button>
                                         <button class="action-btn btn-whatsapp" 
                                                 title="Enviar WhatsApp" 
-                                                onclick="clientDetailsManager.handleSectionAction('whatsapp', 'educational', '${member.name}')">
+                                                onclick="clientDetailsManager.sendToContact('whatsapp', '${this.escapeHtml(member.name)}', '${this.escapeHtml(member.email)}', '${member.whatsapp.replace(/[^\d]/g, '')}')">
                                             <i data-lucide="message-circle"></i>
                                         </button>
                                         <button class="action-btn btn-share" 
                                                 title="Compartilhar" 
-                                                onclick="clientDetailsManager.handleSectionAction('share', 'educational', '${member.name}')">
+                                                onclick="clientDetailsManager.sendToContact('share', '${this.escapeHtml(member.name)}', '${this.escapeHtml(member.email)}', '${member.whatsapp.replace(/[^\d]/g, '')}')">
                                             <i data-lucide="share-2"></i>
                                         </button>
                                     </div>
@@ -266,20 +273,11 @@ class ClientDetailsManager {
                     <i data-lucide="graduation-cap"></i>
                     <h3>Corpo Docente</h3>
                     <div class="section-actions">
-                        <button class="action-btn btn-document" 
-                                title="Enviar Documento" 
-                                onclick="clientDetailsManager.handleSectionAction('document', 'teachers', 'Todos')">
-                            <i data-lucide="file-text"></i>
-                        </button>
-                        <button class="action-btn btn-whatsapp" 
-                                title="Enviar WhatsApp" 
-                                onclick="clientDetailsManager.handleSectionAction('whatsapp', 'teachers', 'Todos')">
-                            <i data-lucide="message-circle"></i>
-                        </button>
-                        <button class="action-btn btn-share" 
-                                title="Compartilhar" 
-                                onclick="clientDetailsManager.handleSectionAction('share', 'teachers', 'Todos')">
-                            <i data-lucide="share-2"></i>
+                        <button class="action-btn btn-primary" 
+                                title="Enviar aos Selecionados" 
+                                onclick="clientDetailsManager.openSendModal('teachers')">
+                            <i data-lucide="send"></i>
+                            <span>Enviar</span>
                         </button>
                     </div>
                 </div>
@@ -287,6 +285,12 @@ class ClientDetailsManager {
                     <table class="team-table">
                         <thead>
                             <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" 
+                                           id="selectAllTeachers" 
+                                           onchange="clientDetailsManager.toggleSelectAll('teachers', this.checked)"
+                                           title="Selecionar Todos">
+                                </th>
                                 <th>Função</th>
                                 <th>Nome</th>
                                 <th>WhatsApp</th>
@@ -296,8 +300,18 @@ class ClientDetailsManager {
                             </tr>
                         </thead>
                         <tbody>
-                            ${this.client.teachers.map(teacher => `
+                            ${this.client.teachers.map((teacher, index) => `
                             <tr>
+                                <td>
+                                    <input type="checkbox" 
+                                           class="contact-checkbox teachers-checkbox" 
+                                           data-section="teachers"
+                                           data-index="${index}"
+                                           data-name="${this.escapeHtml(teacher.name)}"
+                                           data-email="${this.escapeHtml(teacher.email)}"
+                                           data-whatsapp="${teacher.whatsapp.replace(/[^\d]/g, '')}"
+                                           onchange="clientDetailsManager.updateSelectAllState('teachers')">
+                                </td>
                                 <td class="team-role">${this.escapeHtml(teacher.role)}</td>
                                 <td class="team-name">${this.escapeHtml(teacher.name)}</td>
                                 <td class="team-whatsapp">
@@ -315,17 +329,17 @@ class ClientDetailsManager {
                                     <div class="actions-group">
                                         <button class="action-btn btn-document" 
                                                 title="Enviar Documento" 
-                                                onclick="clientDetailsManager.handleSectionAction('document', 'teachers', '${teacher.name}')">
+                                                onclick="clientDetailsManager.sendToContact('document', '${this.escapeHtml(teacher.name)}', '${this.escapeHtml(teacher.email)}', '${teacher.whatsapp.replace(/[^\d]/g, '')}')">
                                             <i data-lucide="file-text"></i>
                                         </button>
                                         <button class="action-btn btn-whatsapp" 
                                                 title="Enviar WhatsApp" 
-                                                onclick="clientDetailsManager.handleSectionAction('whatsapp', 'teachers', '${teacher.name}')">
+                                                onclick="clientDetailsManager.sendToContact('whatsapp', '${this.escapeHtml(teacher.name)}', '${this.escapeHtml(teacher.email)}', '${teacher.whatsapp.replace(/[^\d]/g, '')}')">
                                             <i data-lucide="message-circle"></i>
                                         </button>
                                         <button class="action-btn btn-share" 
                                                 title="Compartilhar" 
-                                                onclick="clientDetailsManager.handleSectionAction('share', 'teachers', '${teacher.name}')">
+                                                onclick="clientDetailsManager.sendToContact('share', '${this.escapeHtml(teacher.name)}', '${this.escapeHtml(teacher.email)}', '${teacher.whatsapp.replace(/[^\d]/g, '')}')">
                                             <i data-lucide="share-2"></i>
                                         </button>
                                     </div>
@@ -771,6 +785,167 @@ class ClientDetailsManager {
             return false;
         }
     }
+
+    /**
+     * Seleciona/deseleciona todos os checkboxes de uma seção
+     */
+    toggleSelectAll(section, checked) {
+        const checkboxes = document.querySelectorAll(`.${section}-checkbox`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+    }
+
+    /**
+     * Atualiza o estado do checkbox "Selecionar Todos"
+     */
+    updateSelectAllState(section) {
+        const checkboxes = document.querySelectorAll(`.${section}-checkbox`);
+        const selectAllId = section === 'educational' ? 'selectAllEducational' : 'selectAllTeachers';
+        const selectAllCheckbox = document.getElementById(selectAllId);
+        
+        const totalCheckboxes = checkboxes.length;
+        const checkedCheckboxes = Array.from(checkboxes).filter(cb => cb.checked).length;
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = (totalCheckboxes === checkedCheckboxes && totalCheckboxes > 0);
+            selectAllCheckbox.indeterminate = (checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+        }
+    }
+
+    /**
+     * Abre o modal de envio com opções
+     */
+    openSendModal(section) {
+        const checkboxes = document.querySelectorAll(`.${section}-checkbox:checked`);
+        
+        if (checkboxes.length === 0) {
+            this.showToast('warning', 'Selecione pelo menos um contato para enviar');
+            return;
+        }
+
+        // Coleta os dados dos contatos selecionados
+        const selectedContacts = Array.from(checkboxes).map(cb => ({
+            name: cb.dataset.name,
+            email: cb.dataset.email,
+            whatsapp: cb.dataset.whatsapp
+        }));
+
+        // Cria o HTML do modal
+        const modalHTML = `
+            <div id="sendModal" class="modal-overlay" style="display: flex;">
+                <div class="send-modal-content">
+                    <div class="send-modal-header">
+                        <h2>
+                            <i data-lucide="send"></i>
+                            Enviar para ${selectedContacts.length} contato(s)
+                        </h2>
+                        <button class="close-button" onclick="clientDetailsManager.closeSendModal()">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                    <div class="send-modal-body">
+                        <div class="selected-contacts-preview">
+                            <h4>Contatos Selecionados:</h4>
+                            <ul>
+                                ${selectedContacts.map(contact => `
+                                    <li>
+                                        <i data-lucide="user"></i>
+                                        ${contact.name}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        <div class="send-options">
+                            <h4>Escolha o método de envio:</h4>
+                            <div class="send-methods">
+                                <button class="send-method-btn btn-whatsapp" onclick='clientDetailsManager.sendToSelected("whatsapp", ${JSON.stringify(selectedContacts)})'>
+                                    <i data-lucide="message-circle"></i>
+                                    <span>WhatsApp</span>
+                                    <small>${selectedContacts.length} mensagens</small>
+                                </button>
+                                <button class="send-method-btn btn-email" onclick='clientDetailsManager.sendToSelected("email", ${JSON.stringify(selectedContacts)})'>
+                                    <i data-lucide="mail"></i>
+                                    <span>Email</span>
+                                    <small>${selectedContacts.length} emails</small>
+                                </button>
+                                <button class="send-method-btn btn-document" onclick='clientDetailsManager.sendToSelected("document", ${JSON.stringify(selectedContacts)})'>
+                                    <i data-lucide="file-text"></i>
+                                    <span>Documento</span>
+                                    <small>${selectedContacts.length} documentos</small>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="send-modal-footer">
+                        <button class="btn-cancel" onclick="clientDetailsManager.closeSendModal()">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Adiciona o modal ao body
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = modalHTML;
+        document.body.appendChild(modalContainer);
+
+        // Inicializa os ícones do Lucide
+        setTimeout(() => this.initializeLucideIcons(), 50);
+    }
+
+    /**
+     * Fecha o modal de envio
+     */
+    closeSendModal() {
+        const modal = document.getElementById('sendModal');
+        if (modal && modal.parentElement) {
+            modal.parentElement.remove();
+        }
+    }
+
+    /**
+     * Envia para os contatos selecionados
+     */
+    sendToSelected(method, contacts) {
+        this.closeSendModal();
+
+        // Simula o envio (aqui você implementaria a lógica real)
+        if (method === 'whatsapp') {
+            // Abre WhatsApp Web para cada contato
+            contacts.forEach((contact, index) => {
+                setTimeout(() => {
+                    const message = encodeURIComponent(`Olá ${contact.name}, tudo bem?`);
+                    window.open(`https://wa.me/${contact.whatsapp}?text=${message}`, '_blank');
+                }, index * 1000); // Delay de 1 segundo entre cada abertura
+            });
+            this.showToast('success', `Abrindo ${contacts.length} conversas no WhatsApp...`);
+        } else if (method === 'email') {
+            // Abre cliente de email com todos os destinatários
+            const emails = contacts.map(c => c.email).join(',');
+            window.open(`mailto:${emails}?subject=Contato&body=Olá`);
+            this.showToast('success', `Abrindo cliente de email para ${contacts.length} destinatários`);
+        } else if (method === 'document') {
+            this.showToast('info', `Preparando documentos para ${contacts.length} destinatários...`);
+            // Aqui você implementaria o envio de documentos
+        }
+    }
+
+    /**
+     * Envia para um contato específico (botões individuais)
+     */
+    sendToContact(method, name, email, whatsapp) {
+        if (method === 'whatsapp') {
+            const message = encodeURIComponent(`Olá ${name}, tudo bem?`);
+            window.open(`https://wa.me/${whatsapp}?text=${message}`, '_blank');
+            this.showToast('success', `Abrindo WhatsApp para ${name}`);
+        } else if (method === 'document') {
+            this.showToast('info', `Enviando documento para ${name}...`);
+        } else if (method === 'share') {
+            this.showToast('info', `Compartilhando com ${name}...`);
+        }
+    }
 }
 
 // ============================================================================
@@ -781,7 +956,12 @@ class ClientDetailsManager {
  * Edita o cliente atual
  */
 function editClient() {
-    clientDetailsManager.showToast('info', 'Funcionalidade de edição será implementada em breve');
+    // Abre o modal de edição usando o gerenciador
+    if (!window.editModalManager || !clientDetailsManager || !clientDetailsManager.client) {
+        clientDetailsManager.showToast('error', 'Não foi possível abrir o modal de edição.');
+        return;
+    }
+    window.editModalManager.openModal(clientDetailsManager.client);
 }
 
 /**
@@ -795,9 +975,7 @@ function printPage() {
 // INICIALIZAÇÃO
 // ============================================================================
 
-let clientDetailsManager;
-
 // Aguarda o DOM estar carregado
 document.addEventListener('DOMContentLoaded', () => {
-    clientDetailsManager = new ClientDetailsManager();
+    window.clientDetailsManager = new ClientDetailsManager();
 });

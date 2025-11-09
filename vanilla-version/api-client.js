@@ -1,5 +1,10 @@
 const API_CONFIG = {
-    baseURL: 'http://localhost:3000/api',
+    // Usa baseURL relativa em produção (Render monolito) e localhost durante desenvolvimento.
+    baseURL: (typeof window !== 'undefined' && window.API_BASE_URL)
+        ? window.API_BASE_URL
+        : (typeof location !== 'undefined' && location.origin.includes('localhost'))
+            ? 'http://localhost:3000/api'
+            : '/api',
     timeout: 10000 // 10 segundos
 };
 
@@ -49,10 +54,10 @@ class ApiClient {
         } catch (error) {
             console.error('❌ API Error:', error);
             
-            // Se for erro de rede, retornar dados mock como fallback
+            // Se for erro de rede e for GET, podemos tentar fallback
+            // Para POST/PUT/DELETE, devemos falhar pois são operações que alteram dados
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                console.warn('🔄 Usando dados mock como fallback (API offline)');
-                return this.getMockFallback(endpoint);
+                console.warn('⚠️ API offline ou inacessível');
             }
             
             throw error;
@@ -122,7 +127,7 @@ async function fetchClients(filters = {}) {
 }
 
 /**
- * Buscar detalhes completos de um cliente
+ * Buscar detalhes completos de um cliente (com todas as relações)
  */
 async function fetchClientDetails(clientId) {
     try {
@@ -130,7 +135,8 @@ async function fetchClientDetails(clientId) {
             throw new Error('ID do cliente é obrigatório');
         }
 
-        return await apiClient.get(`/clientes/${clientId}`);
+        // Usar endpoint /relatorio que traz equipe_pedagogica, corpo_docente, etc
+        return await apiClient.get(`/clientes/${clientId}/relatorio`);
     } catch (error) {
         console.error('Erro ao buscar detalhes do cliente:', error);
         throw error;
@@ -208,11 +214,12 @@ async function checkApiHealth() {
  * Formatar dados do cliente para compatibilidade com o frontend
  */
 function formatClientData(apiData) {
-    if (!apiData || !apiData.data) return null;
-
-    const client = apiData.data;
+    // Aceita tanto { data: {...} } quanto {...} diretamente
+    let client = apiData && apiData.data ? apiData.data : apiData;
     
-    // Se vier no formato agregado (info_basicas, equipe_pedagogica, etc)
+    if (!client || !client.id) return null;
+    
+    // Se vier no formato agregado (info_basicas, equipe_pedagogica, etc) - formato legado
     if (client.info_basicas) {
         const info = client.info_basicas;
         
@@ -237,7 +244,7 @@ function formatClientData(apiData) {
                 id: eq.id,
                 role: eq.funcao,
                 name: eq.nome,
-                whatsapp: eq.whatsapp,
+                whatsapp: eq.zap || eq.whatsapp,
                 email: eq.email,
                 socialMedia: eq.rede_social || ''
             })),
@@ -246,7 +253,7 @@ function formatClientData(apiData) {
                 id: doc.id,
                 role: doc.funcao,
                 name: doc.nome,
-                whatsapp: doc.whatsapp,
+                whatsapp: doc.zap || doc.whatsapp,
                 email: doc.email,
                 school: doc.escola
             })),
@@ -275,40 +282,56 @@ function formatClientData(apiData) {
         };
     }
     
-    // Formato antigo (retrocompatibilidade)
+    // Mapeamento dos campos do backend para o frontend (novo endpoint /relatorio)
     return {
         id: client.id,
-        name: client.name,
-        type: client.type,
-        address: client.address,
-        phone: client.phone,
-        cnpj: client.cnpj,
-        city: client.city,
-        state: client.state,
-        microRegion: client.micro_region,
-        invoiceSystem: client.invoice_system,
-        observations: client.observations,
-        status: client.status,
-        createdAt: new Date(client.created_at),
-        updatedAt: new Date(client.updated_at),
+        name: client.nome,
+        type: client.tipo,
+        address: client.observacoes || '',
+        phone: client.telefone || '',
+        cnpj: client.cnpj || '',
+        city: client.cidade || '',
+        state: client.uf || '',
+        microRegion: client.microrregiao || '',
+        invoiceSystem: client.invoice_system || '',
+        observations: client.observacoes || '',
+        status: client.status || '',
+        createdAt: client.created_at ? new Date(client.created_at) : '',
+        updatedAt: client.updated_at ? new Date(client.updated_at) : '',
         
-        // Dados relacionados
-        educationalTeam: client.educational_team || client.educationalTeam || [],
+        // Dados relacionados - agora mapeando corretamente
+        educationalTeam: (client.equipe_pedagogica || []).map(eq => ({
+            id: eq.id,
+            role: eq.funcao,
+            name: eq.nome,
+            whatsapp: eq.zap || '',
+            email: eq.email,
+            socialMedia: eq.rede_social || ''
+        })),
+        
+        teachers: (client.corpo_docente || []).map(doc => ({
+            id: doc.id,
+            role: doc.funcao,
+            name: doc.nome,
+            whatsapp: doc.zap || '',
+            email: doc.email,
+            school: doc.escola || ''
+        })),
+        
+        studentSegmentation: client.rede_em_numeros || [],
         schools: client.schools || [],
-        teachers: client.teachers || [],
-        studentSegmentation: client.student_segmentation || client.studentSegmentation || [],
         
         // Totais
-        totals: client.totals || {
-            educationalTeam: client.total_equipe_pedagogica || 0,
-            teachers: client.total_professores || 0,
-            students: client.total_alunos || 0,
+        totals: {
+            educationalTeam: (client.equipe_pedagogica || []).length,
+            teachers: (client.corpo_docente || []).length,
+            students: 0,
             schools: 0,
             segments: 0
         },
         
         // Total de estudantes
-        totalStudents: client.total_alunos || 0
+        totalStudents: 0
     };
 }
 

@@ -1,0 +1,85 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - button "Voltar" [ref=e5] [cursor=pointer]:
+          - img [ref=e6]
+          - generic [ref=e8]: Voltar
+        - generic [ref=e9]:
+          - heading "Detalhes do Cliente" [level=1] [ref=e10]
+          - paragraph [ref=e11]: Escola Alpha • escola • São Paulo/SP
+      - generic [ref=e12]:
+        - button "Editar Cliente" [active] [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+          - generic [ref=e17]: Editar Cliente
+        - button "Imprimir" [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+          - generic [ref=e23]: Imprimir
+  - main [ref=e24]:
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - img [ref=e29]
+          - heading "Informações Básicas" [level=3] [ref=e33]
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: Nome
+            - generic [ref=e37]: Escola Alpha
+          - generic [ref=e38]:
+            - generic [ref=e39]: Tipo
+            - generic [ref=e40]: escola
+          - generic [ref=e41]:
+            - generic [ref=e42]: Observações
+            - generic [ref=e43]: Escola de grande porte, foco em tecnologia.
+          - generic [ref=e44]:
+            - generic [ref=e45]: Telefone
+            - generic [ref=e46]: (11) 99999-0001
+          - generic [ref=e47]:
+            - generic [ref=e48]: CNPJ
+            - generic [ref=e49]: 12.345.678/0001-90
+          - generic [ref=e50]:
+            - generic [ref=e51]: Cidade/UF
+            - generic [ref=e52]: São Paulo - SP
+          - generic [ref=e53]:
+            - generic [ref=e54]: Observações
+            - generic [ref=e55]: Escola de grande porte, foco em tecnologia.
+      - generic [ref=e56]:
+        - generic [ref=e57]:
+          - img [ref=e58]
+          - heading "Gerador de Propostas" [level=3] [ref=e61]
+        - generic [ref=e62]:
+          - paragraph [ref=e63]: "Selecione o tipo de proposta que deseja gerar para este cliente:"
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - img [ref=e67]
+                - text: Tipo de Proposta
+              - combobox "Tipo de Proposta" [ref=e70] [cursor=pointer]:
+                - option "Selecione uma proposta..." [selected]
+                - option "Proposta Afro"
+                - option "Proposta Paz"
+                - option "Proposta Gamer"
+            - button "Gerar Proposta" [ref=e71] [cursor=pointer]:
+              - img [ref=e72]
+              - generic [ref=e74]: Gerar Proposta
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - img [ref=e77]
+          - heading "Informações do Sistema" [level=3] [ref=e80]
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - generic [ref=e83]: Sistema de Faturamento
+            - generic [ref=e84]: Não informado
+          - generic [ref=e85]:
+            - generic [ref=e86]: Data de Criação
+            - generic [ref=e87]: N/A
+          - generic [ref=e88]:
+            - generic [ref=e89]: Última Atualização
+            - generic [ref=e90]: N/A
+          - generic [ref=e91]:
+            - generic [ref=e92]: Status
+            - generic [ref=e94]: Inativo
+```

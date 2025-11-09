@@ -6,16 +6,30 @@
  */
 const { Pool } = require('pg');
 
-// Configurações da tua base de dados.
-// NOTA: Deves substituir 'tualocalhost', 'teuusuario', 'tuaSenha' e 'teuBancoDeDados' pelos teus dados reais.
-// Em um projeto real, estas informações deveriam vir de variáveis de ambiente (.env) por questões de segurança.
-const pool = new Pool({
-  user: 'postgres',      // Substitui pelo teu usuário do PostgreSQL
-  host: 'localhost',    // Geralmente 'localhost' ou o IP do servidor do DB
-  database: 'etica_vendas', // O nome do teu banco de dados
-  password: 'Jcchaos007@',    // A tua senha
-  port: 5432,              // A porta padrão do PostgreSQL
-});
+// Permite configuração via DATABASE_URL (preferível em produção) ou variáveis individuais.
+// Em provedores como Render, defina DATABASE_URL e (se necessário) SSL=true.
+let poolConfig;
+
+if (process.env.DATABASE_URL) {
+  poolConfig = {
+    connectionString: process.env.DATABASE_URL,
+    // Alguns provedores exigem SSL. Respeita flags comuns.
+    ssl: process.env.PGSSL === 'true' || process.env.SSL === 'true' || process.env.RENDER === 'true'
+      ? { rejectUnauthorized: false }
+      : false,
+  };
+} else {
+  poolConfig = {
+    user: process.env.PGUSER || 'postgres',
+    host: process.env.PGHOST || 'localhost',
+    database: process.env.PGDATABASE || 'etica_vendas',
+    password: process.env.PGPASSWORD || 'postgres',
+    port: Number(process.env.PGPORT || 5432),
+    ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : false,
+  };
+}
+
+const pool = new Pool(poolConfig);
 
 // Testar a conexão (opcional, mas recomendado)
 pool.query('SELECT NOW()', (err, res) => {

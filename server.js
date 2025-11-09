@@ -1,8 +1,10 @@
 require('dotenv').config();
 
 const express = require('express');
+const cors = require('cors');
 const app = express();
-const PORT = 3000; // A porta onde o teu servidor irá correr
+// Usa a porta definida na variável de ambiente (Render fornece automaticamente) ou fallback para 3000 localmente
+const PORT = process.env.PORT || 3000;
 
 // Importa o módulo de conexão com o DB para garantir que ele é executado e testado
 require('./config/db');
@@ -11,9 +13,31 @@ require('./config/db');
 // Isso permite que o Express entenda os dados JSON enviados nas requisições POST e PUT
 app.use(express.json());
 
+// CORS (opcional) - Ative apenas quando front e backend estiverem em domínios diferentes
+if (process.env.CORS_ENABLED === 'true') {
+  const allowedOrigin = process.env.FRONTEND_ORIGIN || '*';
+  app.use(cors({
+    origin: allowedOrigin,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
+  console.log(`🔐 CORS ativo para origem: ${allowedOrigin}`);
+}
+
+// Middleware de debug para logar todas as requisições
+app.use((req, res, next) => {
+  console.log(`📍 ${req.method} ${req.url}`);
+  next();
+});
+
 // Middleware para servir arquivos estáticos da pasta 'vanilla-version' (compatível cross-platform)
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'vanilla-version')));
+
+// Rota raiz redireciona para login
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {
@@ -55,5 +79,5 @@ app.use('/api/auth', authRoutes);
 
 // Inicia o servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor a correr na porta ${PORT}. Acessa http://localhost:${PORT}`);
+  console.log(`🚀 Servidor ativo na porta ${PORT}`);
 });

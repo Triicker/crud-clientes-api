@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalhes do Cliente - Sistema de Gestão</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="edit-modal-styles.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
@@ -64,12 +65,126 @@
     </main>
 
     <!-- Toast notifications -->
+
+    <!-- Client Edit Modal -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-backdrop" id="editModalBackdrop" style="display:none;"></div>
+        <div class="modal-content edit-modal-content" style="display:none;">
+            <div class="modal-header">
+                <h2 id="editModalTitle">Editar Cliente</h2>
+                <button id="closeEditModal" class="close-button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body edit-modal-body" id="editModalBody" style="display:none;">
+                <form id="editClientForm" class="edit-form">
+                    <!-- Informações Básicas -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i data-lucide="user" class="section-icon"></i>
+                            Informações Básicas
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editName">Nome da Instituição *</label>
+                                <input type="text" id="editName" name="name" required class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editType">Tipo de Instituição *</label>
+                                <select id="editType" name="type" required class="form-select">
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="Rede de Ensino">Rede de Ensino</option>
+                                    <option value="Escola">Escola</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editCnpj">CNPJ</label>
+                                <input type="text" id="editCnpj" name="cnpj" class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editPhone">Telefone</label>
+                                <input type="tel" id="editPhone" name="phone" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Localização -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i data-lucide="map-pin" class="section-icon"></i>
+                            Localização
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editState">Estado *</label>
+                                <select id="editState" name="state" required class="form-select">
+                                    <option value="">Carregando estados...</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editCity">Cidade *</label>
+                                <select id="editCity" name="city" required class="form-select">
+                                    <option value="">Selecione primeiro o estado</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label for="editAddress">Endereço Completo</label>
+                                <textarea id="editAddress" name="address" rows="2" class="form-textarea"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i data-lucide="info" class="section-icon"></i>
+                            Observações
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="editNotes">Observações</label>
+                                <textarea id="editNotes" name="notes" rows="3" class="form-textarea" placeholder="Observações adicionais sobre o cliente..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancelEdit" class="btn-secondary">
+                    <i data-lucide="x"></i>
+                    <span>Cancelar</span>
+                </button>
+                <button type="submit" id="saveChanges" class="btn-primary">
+                    <i data-lucide="save"></i>
+                    <span>Salvar Alterações</span>
+                </button>
+            </div>
+        </div>
+    </div>
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts: auth-manager.js must come first -->
     <script src="auth-manager.js"></script>
     <script src="ibge-api.js"></script>
     <script src="api-client.js"></script>
+    <script src="edit-modal-client-details.js"></script>
     <script src="client-details.js"></script>
+    <script>
+        // Função global para editar cliente
+        function editClient() {
+            if (window.clientDetailsManager && window.clientDetailsManager.client) {
+                if (window.editModalManager) {
+                    window.editModalManager.openModal(window.clientDetailsManager.client);
+                } else {
+                    console.error('Edit Modal Manager não encontrado');
+                }
+            }
+        }
+    </script>
 </body>
 </html>

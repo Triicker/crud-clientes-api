@@ -197,8 +197,8 @@ class EditModalManager {
             this.setLoading(this.inputs.state, true);
             
             // Use IBGE API if available
-            if (window.ibgeAPI) {
-                const states = await window.ibgeAPI.getStates();
+            if (window.ibgeApiClient) {
+                const states = await window.ibgeApiClient.getEstados();
                 this.populateStates(states);
             } else {
                 // Fallback to basic states
@@ -244,10 +244,10 @@ class EditModalManager {
             this.inputs.city.innerHTML = '<option value="">Carregando cidades...</option>';
 
             const selectedOption = this.inputs.state.selectedOptions[0];
-            const stateId = selectedOption?.dataset.stateId || this.inputs.state.value;
+            const stateCode = this.inputs.state.value;
 
-            if (window.ibgeAPI) {
-                const cities = await window.ibgeAPI.getCitiesByState(stateId);
+            if (window.ibgeApiClient) {
+                const cities = await window.ibgeApiClient.getMunicipiosPorEstado(stateCode);
                 this.populateCities(cities);
             } else {
                 // Fallback
@@ -274,17 +274,16 @@ class EditModalManager {
     }
 
     async loadMicroregions() {
-        if (!this.inputs.microregion || !this.inputs.city.value) return;
+        if (!this.inputs.microregion || !this.inputs.state.value) return;
 
         try {
             this.setLoading(this.inputs.microregion, true);
             this.inputs.microregion.innerHTML = '<option value="">Carregando microrregiões...</option>';
 
-            const selectedOption = this.inputs.city.selectedOptions[0];
-            const cityId = selectedOption?.dataset.cityId;
+            const stateCode = this.inputs.state.value;
 
-            if (window.ibgeAPI && cityId) {
-                const microregions = await window.ibgeAPI.getMicroregionsByCity(cityId);
+            if (window.ibgeApiClient && stateCode) {
+                const microregions = await window.ibgeApiClient.getMicrorregioesPorEstado(stateCode);
                 this.populateMicroregions(microregions);
             } else {
                 this.inputs.microregion.innerHTML = '<option value="">Selecione a microrregião</option>';
@@ -318,13 +317,32 @@ class EditModalManager {
         }
     }
 
-    openModal(clientData) {
+    openModal(clientData, isNewClient = false) {
         this.currentClient = clientData;
         this.originalData = { ...clientData };
         this.hasChanges = false;
+        this.isNewClient = isNewClient;
 
         this.populateForm(clientData);
         this.modal.style.display = 'flex';
+        // Ensure modal-content, modal body, and backdrop are visible
+        const modalContent = this.modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.display = 'flex';
+        }
+        const modalBody = document.getElementById('editModalBody');
+        if (modalBody) {
+            modalBody.style.display = 'block';
+        }
+        const backdrop = document.getElementById('editModalBackdrop');
+        if (backdrop) {
+            backdrop.style.display = 'block';
+        }
+        
+        // Atualiza título do modal
+        if (this.modalTitle) {
+            this.modalTitle.textContent = isNewClient ? 'Incluir Novo Cliente' : `Editar: ${clientData.name || 'Cliente'}`;
+        }
         
         // Focus first input
         setTimeout(() => {
@@ -350,9 +368,6 @@ class EditModalManager {
                 }
             }
         });
-
-        // Update modal title
-        this.modalTitle.textContent = `Editar: ${data.name || 'Cliente'}`;
     }
 
     trackChanges() {
@@ -475,34 +490,69 @@ class EditModalManager {
             // Collect form data
             const formData = this.collectFormData();
 
-            // Save via API
-            await this.saveClientData(formData);
+            // Save via API (CREATE or UPDATE)
+            const result = await this.saveClientData(formData);
 
-            // Update local data
-            Object.assign(this.currentClient, formData);
+            if (this.isNewClient) {
+                // For new clients, show success and reload page
+                this.showToast('Cliente criado com sucesso!', 'success');
+                this.closeModal();
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                // Update local data
+                Object.assign(this.currentClient, formData);
 
-            // Update the main table with new data
-            this.refreshMainTable(this.currentClient.id, formData);
+                // Update the main table with new data
+                this.refreshMainTable(this.currentClient.id, formData);
 
-            // Show success and close modal
-            this.showToast('Cliente atualizado com sucesso!', 'success');
-            this.closeModal();
+                // Show success and close modal
+                this.showToast('Cliente atualizado com sucesso!', 'success');
+                this.closeModal();
+            }
 
         } catch (error) {
             console.error('Erro ao salvar cliente:', error);
-            this.showToast('Erro ao salvar cliente. Tente novamente.', 'error');
+            const errorMessage = this.isNewClient 
+                ? 'Erro ao criar cliente. Tente novamente.'
+                : 'Erro ao atualizar cliente. Tente novamente.';
+            this.showToast(errorMessage, 'error');
         } finally {
             this.setFormLoading(false);
         }
     }
 
     collectFormData() {
+        // Mapeamento correto: frontend (inglês) -> backend (português)
+        const fieldMapping = {
+            'name': 'nome',
+            'type': 'tipo',
+            'cnpj': 'cnpj',
+            'size': 'porte',
+            'state': 'uf',
+            'city': 'cidade',
+            'microregion': 'microrregiao',
+            'address': 'endereco',
+            'phone': 'telefone',
+            'secondaryPhone': 'telefone_secundario',
+            'email': 'email',
+            'website': 'site',
+            'students': 'num_alunos',
+            'foundedYear': 'ano_fundacao',
+            'notes': 'observacoes',
+            'status': 'status',
+            'responsible': 'responsavel',
+            'priority': 'prioridade',
+            'lastContact': 'ultimo_contato'
+        };
+
         const data = {};
         
         Object.keys(this.inputs).forEach(key => {
             const input = this.inputs[key];
-            if (input) {
-                data[key] = input.value || null;
+            if (input && input.value) {
+                // Usa o nome mapeado para português
+                const backendFieldName = fieldMapping[key] || key;
+                data[backendFieldName] = input.value;
             }
         });
 
@@ -516,7 +566,13 @@ class EditModalManager {
     async saveClientData(data) {
         // If API client is available, use it
         if (window.apiClient) {
-            return await window.apiClient.updateClient(this.currentClient.id, data);
+            if (this.isNewClient) {
+                // CREATE: POST to /clientes
+                return await window.apiClient.post('/clientes', data);
+            } else {
+                // UPDATE: PUT to /clientes/:id
+                return await window.apiClient.updateClient(this.currentClient.id, data);
+            }
         }
 
         // Simulate API call
@@ -552,11 +608,21 @@ class EditModalManager {
 
     closeModal() {
         this.modal.style.display = 'none';
+        const modalContent = this.modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.display = 'none';
+        }
+        const modalBody = document.getElementById('editModalBody');
+        if (modalBody) {
+            modalBody.style.display = 'none';
+        }
+        if (this.modalBackdrop) {
+            this.modalBackdrop.style.display = 'none';
+        }
         this.currentClient = null;
         this.originalData = null;
         this.hasChanges = false;
         this.isLoading = false;
-        
         // Clear form
         this.form.reset();
         

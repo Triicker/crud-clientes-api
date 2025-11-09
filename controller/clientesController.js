@@ -10,7 +10,12 @@ const pool = require('../config/db');
 
 // 1. CREATE (Criar um novo cliente)
 exports.createCliente = async (req, res) => {
+  console.log('📥 Recebido POST /api/clientes');
+  console.log('📦 req.body:', JSON.stringify(req.body, null, 2));
+  
   const { nome, tipo, cnpj, cidade, uf, telefone, observacoes } = req.body;
+
+  console.log('📋 Dados extraídos:', { nome, tipo, cnpj, cidade, uf, telefone, observacoes });
 
   try {
     const query = `
@@ -22,6 +27,8 @@ exports.createCliente = async (req, res) => {
     // 'RETURNING *' devolve o registo inserido.
     
     const values = [nome, tipo, cnpj, cidade, uf, telefone, observacoes];
+    
+    console.log('💾 Executando INSERT com valores:', values);
 
     const result = await pool.query(query, values);
 
@@ -80,68 +87,96 @@ exports.getClienteRelatorio = async (req, res) => {
     const { id } = req.params; // ID do Cliente
 
     try {
-        // 1. OBTER DADOS PRINCIPAIS DO CLIENTE
-        const clienteResult = await pool.query('SELECT * FROM clientes WHERE id = $1', [id]);
+        // OTIMIZADO: Uma única query com JSON aggregation ao invés de múltiplas queries
+        // Isso reduz de 4 queries para 1, melhorando significativamente a performance
         
-        if (clienteResult.rows.length === 0) {
+        const query = `
+            SELECT 
+                c.*,
+                COALESCE(json_agg(
+                    json_build_object(
+                        'id', ep.id,
+                        'funcao', ep.funcao,
+                        'nome', ep.nome,
+                        'zap', ep.zap,
+                        'email', ep.email,
+                        'rede_social', ep.rede_social
+                    ) ORDER BY ep.nome
+                ) FILTER (WHERE ep.id IS NOT NULL), '[]'::json) as equipe_pedagogica,
+                
+                COALESCE(json_agg(
+                    json_build_object(
+                        'id', cd.id,
+                        'funcao', cd.funcao,
+                        'nome', cd.nome,
+                        'zap', cd.zap,
+                        'email', cd.email,
+                        'escola', cd.escola
+                    ) ORDER BY cd.nome
+                ) FILTER (WHERE cd.id IS NOT NULL), '[]'::json) as corpo_docente,
+                
+                COALESCE(json_agg(
+                    json_build_object(
+                        'id', p.id,
+                        'nome', p.nome,
+                        'valor', p.valor,
+                        'enviada', p.enviada,
+                        'created_at', p.created_at
+                    ) ORDER BY p.created_at DESC
+                ) FILTER (WHERE p.id IS NOT NULL), '[]'::json) as propostas,
+                
+                COALESCE(json_agg(
+                    json_build_object(
+                        'id', d.id,
+                        'classe', d.classe,
+                        'nivel_rede', d.nivel_rede,
+                        'ideb', d.ideb,
+                        'satisfacao', d.satisfacao,
+                        'impacto', d.impacto
+                    ) ORDER BY d.id DESC
+                ) FILTER (WHERE d.id IS NOT NULL), '[]'::json) as diagnosticos
+            FROM clientes c
+            LEFT JOIN equipe_pedagogica ep ON c.id = ep.cliente_id
+            LEFT JOIN corpo_docente cd ON c.id = cd.cliente_id
+            LEFT JOIN propostas p ON c.id = p.cliente_id
+            LEFT JOIN diagnostico d ON c.id = d.cliente_id
+            WHERE c.id = $1
+            GROUP BY c.id
+        `;
+
+        const result = await pool.query(query, [id]);
+
+        if (result.rows.length === 0) {
             return res.status(404).json({ mensagem: 'Cliente não encontrado.' });
         }
-        
-        const cliente = clienteResult.rows[0];
 
-        // 2. BUSCAR DADOS RELACIONADOS (usando o cliente.id)
-        
-        // A. EQUIPE PEDAGÓGICA (1:N)
-        const equipeQuery = `
-            SELECT funcao, nome, zap, email, rede_social 
-            FROM equipe_pedagogica 
-            WHERE cliente_id = $1 
-            ORDER BY nome
-        `;
-        const equipeResult = await pool.query(equipeQuery, [id]);
+        const cliente = result.rows[0];
 
-        // B. CORPO DOCENTE (1:N)
-        const docentesQuery = `
-            SELECT funcao, nome, zap, email, escola 
-            FROM corpo_docente 
-            WHERE cliente_id = $1
-            ORDER BY nome
-        `;
-        const docentesResult = await pool.query(docentesQuery, [id]);
-
-        // C. PROPOSTAS (1:N)
-        const propostasQuery = `
-            SELECT nome, valor, enviada, created_at
-            FROM propostas 
-            WHERE cliente_id = $1
-            ORDER BY created_at DESC
-        `;
-        const propostasResult = await pool.query(propostasQuery, [id]);
-        
-        // D. DIAGNÓSTICO (1:N - pode ter múltiplos, mas geralmente um)
-        const diagnosticoQuery = `
-            SELECT classe, nivel_rede, ideb, satisfacao, impacto, created_at 
-            FROM diagnostico 
-            WHERE cliente_id = $1
-            ORDER BY created_at DESC
-        `;
-        const diagnosticoResult = await pool.query(diagnosticoQuery, [id]);
-
-        // 3. COMBINAR TODOS OS DADOS NO OBJETO FINAL
+        // Converter strings JSON de volta para objetos (se necessário)
         const relatorio = {
             ...cliente,
-            equipe_pedagogica: equipeResult.rows,
-            corpo_docente: docentesResult.rows,
-            propostas: propostasResult.rows,
-            diagnosticos: diagnosticoResult.rows,
-            // Poderias adicionar aqui rede_numeros, programas_financeiros, etc.
+            equipe_pedagogica: typeof cliente.equipe_pedagogica === 'string' 
+                ? JSON.parse(cliente.equipe_pedagogica) 
+                : cliente.equipe_pedagogica,
+            corpo_docente: typeof cliente.corpo_docente === 'string'
+                ? JSON.parse(cliente.corpo_docente)
+                : cliente.corpo_docente,
+            propostas: typeof cliente.propostas === 'string'
+                ? JSON.parse(cliente.propostas)
+                : cliente.propostas,
+            diagnosticos: typeof cliente.diagnosticos === 'string'
+                ? JSON.parse(cliente.diagnosticos)
+                : cliente.diagnosticos
         };
 
         res.status(200).json(relatorio);
 
     } catch (error) {
         console.error(`Erro ao gerar relatório do cliente com ID ${id}:`, error);
-        res.status(500).json({ erro: 'Erro interno do servidor ao gerar relatório.' });
+        res.status(500).json({ 
+            erro: 'Erro interno do servidor ao gerar relatório.',
+            message: error.message 
+        });
     }
 };
 
