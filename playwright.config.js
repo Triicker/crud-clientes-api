@@ -1,5 +1,7 @@
 // playwright.config.js
 module.exports = {
+  testDir: './tests',
+  testMatch: '**/*.spec.js',
   use: {
     baseURL: 'http://localhost:3000',
     headless: true,

@@ -1,0 +1,869 @@
+/* ============================================================================ */
+/* ESTILOS PARA FUNCIONALIDADE DE ENVIO EM MASSA                              */
+/* ============================================================================ */
+
+/* ===== CHECKBOXES NA TABELA ===== */
+.checkbox-cell {
+    width: 40px;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+}
+
+.row-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #667eea;
+    border-radius: 4px;
+}
+
+.select-all-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #667eea;
+}
+
+/* ===== BOTÃO NOVO ENVIO (TOPO DIREITO) ===== */
+.bulk-actions-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.bulk-send-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.bulk-send-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.bulk-send-button:active {
+    transform: translateY(0);
+}
+
+.bulk-send-button i {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== ÍCONES DE AÇÕES MODERNOS ===== */
+.action-icons-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-icon-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Ícone de visualizar (azul) */
+.action-icon-btn.view-btn {
+    color: #3b82f6;
+}
+
+.action-icon-btn.view-btn:hover {
+    background: #dbeafe;
+}
+
+/* Ícone de WhatsApp (verde) */
+.action-icon-btn.whatsapp-btn {
+    color: #10b981;
+}
+
+.action-icon-btn.whatsapp-btn:hover {
+    background: #d1fae5;
+}
+
+/* Ícone de E-mail (laranja) */
+.action-icon-btn.email-btn {
+    color: #f59e0b;
+}
+
+.action-icon-btn.email-btn:hover {
+    background: #fef3c7;
+}
+
+/* Ícone de Documento (roxo) */
+.action-icon-btn.document-btn {
+    color: #8b5cf6;
+}
+
+.action-icon-btn.document-btn:hover {
+    background: #ede9fe;
+}
+
+/* Ícone de Excluir (vermelho) */
+.action-icon-btn.delete-btn {
+    color: #ef4444;
+}
+
+.action-icon-btn.delete-btn:hover {
+    background: #fee2e2;
+}
+
+/* ===== MODAL DE NOVO ENVIO (MULTI-ETAPAS) ===== */
+.bulk-send-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.bulk-send-modal.active {
+    display: flex;
+}
+
+.bulk-send-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.bulk-send-modal-content {
+    position: relative;
+    z-index: 10000;
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bulk-send-modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bulk-send-modal-header h2 {
+    font-size: 1.5rem;
+    color: #1f2937;
+    font-weight: 700;
+}
+
+.bulk-send-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.bulk-send-close-btn:hover {
+    background: #f3f4f6;
+}
+
+.bulk-send-close-btn i {
+    width: 24px;
+    height: 24px;
+    color: #6b7280;
+}
+
+.bulk-send-modal-body {
+    padding: 1.5rem;
+    max-height: calc(85vh - 180px);
+    overflow-y: auto;
+}
+
+/* ===== ETAPAS DO WIZARD ===== */
+.wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.wizard-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #e5e7eb;
+    z-index: 0;
+}
+
+.wizard-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.wizard-step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+}
+
+.wizard-step.active .wizard-step-number {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.wizard-step.completed .wizard-step-number {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+.wizard-step-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+    text-align: center;
+}
+
+.wizard-step.active .wizard-step-label {
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* ===== ETAPA 1: ESCOLHER TIPO DE ENVIO ===== */
+.send-type-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.send-type-card {
+    padding: 1.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.send-type-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.send-type-card.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.send-type-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-type-card.whatsapp .send-type-icon {
+    background: #d1fae5;
+    color: #10b981;
+}
+
+.send-type-card.email .send-type-icon {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.send-type-card.document .send-type-icon {
+    background: #ede9fe;
+    color: #8b5cf6;
+}
+
+.send-type-icon i {
+    width: 28px;
+    height: 28px;
+}
+
+.send-type-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.send-type-description {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+/* ===== ETAPA 2: SELECIONAR CONTATOS ===== */
+.contacts-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.contact-item {
+    padding: 0.75rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.contact-item:hover {
+    background: #f9fafb;
+}
+
+.contact-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #667eea;
+}
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.95rem;
+}
+
+.contact-details {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.select-all-contacts {
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    color: #667eea;
+    cursor: pointer;
+}
+
+/* ===== ETAPA 3: CONFIRMAR E ENVIAR ===== */
+.send-summary {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.summary-value {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.message-input-area {
+    margin-top: 1.5rem;
+}
+
+.message-input-area label {
+    display: block;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.message-input-area textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+}
+
+.file-upload-area {
+    margin-top: 1.5rem;
+}
+
+.file-upload-area label {
+    display: block;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.file-upload-box {
+    border: 2px dashed #e5e7eb;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.file-upload-box:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.file-upload-box input[type="file"] {
+    display: none;
+}
+
+.file-upload-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    color: #9ca3af;
+}
+
+.file-upload-text {
+    font-size: 0.95rem;
+    color: #6b7280;
+}
+
+/* ===== RODAPÉ DO MODAL ===== */
+.bulk-send-modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.wizard-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.wizard-btn-back {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.wizard-btn-back:hover {
+    background: #e5e7eb;
+}
+
+.wizard-btn-next {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.wizard-btn-next:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.wizard-btn-next:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.wizard-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== MODAIS DE ENVIO RÁPIDO (INDIVIDUAL) ===== */
+.quick-send-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.quick-send-modal.active {
+    display: flex;
+}
+
+.quick-send-modal-content {
+    position: relative;
+    z-index: 10000;
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.quick-send-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.quick-send-header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quick-send-modal.whatsapp .quick-send-header-icon {
+    background: #d1fae5;
+    color: #10b981;
+}
+
+.quick-send-modal.email .quick-send-header-icon {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.quick-send-modal.document .quick-send-header-icon {
+    background: #ede9fe;
+    color: #8b5cf6;
+}
+
+.quick-send-header-icon i {
+    width: 24px;
+    height: 24px;
+}
+
+.quick-send-title {
+    flex: 1;
+}
+
+.quick-send-title h3 {
+    font-size: 1.25rem;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.quick-send-title p {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.quick-send-body {
+    padding: 1.5rem;
+}
+
+.quick-send-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.quick-send-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.quick-send-btn-cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.quick-send-btn-cancel:hover {
+    background: #e5e7eb;
+}
+
+.quick-send-btn-send {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.quick-send-btn-send:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== BOTÃO DE ENVIO PARA SELECIONADOS (MOBILE) ===== */
+.bulk-send-floating-btn {
+    display: none;
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    z-index: 1000;
+    gap: 0.5rem;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.bulk-send-floating-btn.show {
+    display: flex;
+}
+
+.bulk-send-floating-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+}
+
+.bulk-send-floating-btn i {
+    width: 20px;
+    height: 20px;
+}
+
+.selected-count-badge {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 700;
+}
+
+/* ===== MENU MOBILE (AÇÕES EM DROPDOWN) ===== */
+.action-menu-mobile {
+    position: relative;
+    display: none;
+}
+
+.action-menu-trigger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.action-menu-trigger:hover {
+    background: #f3f4f6;
+}
+
+.action-menu-trigger i {
+    width: 20px;
+    height: 20px;
+    color: #6b7280;
+}
+
+.action-menu-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    z-index: 100;
+    margin-top: 0.25rem;
+}
+
+.action-menu-dropdown.show {
+    display: block;
+}
+
+.action-menu-item {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.action-menu-item:hover {
+    background: #f9fafb;
+}
+
+.action-menu-item i {
+    width: 18px;
+    height: 18px;
+}
+
+.action-menu-item.view { color: #3b82f6; }
+.action-menu-item.whatsapp { color: #10b981; }
+.action-menu-item.email { color: #f59e0b; }
+.action-menu-item.document { color: #8b5cf6; }
+.action-menu-item.delete { color: #ef4444; }
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+    .send-type-options {
+        grid-template-columns: 1fr;
+    }
+
+    .action-icons-group {
+        display: none;
+    }
+
+    .action-menu-mobile {
+        display: block;
+    }
+
+    .bulk-actions-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .bulk-send-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .wizard-steps {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .wizard-steps::before {
+        display: none;
+    }
+
+    .wizard-step {
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+
+    .bulk-send-modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .quick-send-modal-content {
+        width: 95%;
+    }
+}
+
+@media (max-width: 480px) {
+    .bulk-send-modal-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .wizard-btn {
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .send-type-card {
+        padding: 1rem;
+    }
+
+    .send-type-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .send-type-icon i {
+        width: 24px;
+        height: 24px;
+    }
+}

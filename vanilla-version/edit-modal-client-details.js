@@ -280,7 +280,7 @@ class EditModalManager {
             this.inputs.city.innerHTML = '<option value="">Carregando cidades...</option>';
             this.inputs.city.disabled = true;
 
-            const cities = await ibgeApiClient.getMunicipios(stateCode);
+            const cities = await ibgeApiClient.getMunicipiosPorEstado(stateCode);
             
             this.inputs.city.innerHTML = '<option value="">Selecione a cidade</option>';
             

@@ -5,8 +5,6 @@
     align-items: center;
     justify-content: flex-end;
     padding: 8px 16px;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
 }
 
 .user-info {
@@ -19,7 +17,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #007bff;
+    background-color: #6f60c0;
     color: white;
     display: flex;
     align-items: center;
@@ -44,7 +42,7 @@
 
 .user-role {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: #ffffff;
 }
 
 .user-actions {
@@ -57,7 +55,7 @@
 .logout-button, .user-menu-button {
     background-color: transparent;
     border: 1px solid #ced4da;
-    color: #495057;
+    color: #ffffff;
     padding: 8px 12px;
     border-radius: 4px;
     cursor: pointer;

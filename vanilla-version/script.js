@@ -12,6 +12,7 @@ const clientTypes = {
 
 class ClientManager {
     constructor() {
+        console.log('🚀 ClientManager inicializado');
         this.clients = [];
         this.filteredClients = [];
         this.currentPage = 1;
@@ -27,6 +28,12 @@ class ClientManager {
         this.pagination = null;
         this.apiAvailable = false;
         
+        console.log('📋 Estado inicial:', {
+            clients: this.clients.length,
+            filteredClients: this.filteredClients.length,
+            searchTerm: this.searchTerm
+        });
+        
         this.initializeElements();
         this.attachEventListeners();
         this.initializeLucideIcons();
@@ -37,6 +44,8 @@ class ClientManager {
      * Inicializa as referências dos elementos DOM
      */
     initializeElements() {
+        console.log('🔍 Inicializando elementos DOM...');
+        
         // Search and filters
         this.searchInput = document.getElementById('searchInput');
         this.clearSearchBtn = document.getElementById('clearSearch');
@@ -44,8 +53,20 @@ class ClientManager {
         this.cityFilterSelect = document.getElementById('cityFilter');
         this.microregionFilterSelect = document.getElementById('microregionFilter');
         this.typeFilterSelect = document.getElementById('typeFilter');
+        this.applyFiltersBtn = document.getElementById('applyFilters');
         this.resetFiltersBtn = document.getElementById('resetFilters');
         this.addClientBtn = document.getElementById('addClientButton');
+        
+        console.log('✅ Elementos encontrados:', {
+            searchInput: !!this.searchInput,
+            applyFiltersBtn: !!this.applyFiltersBtn,
+            resetFiltersBtn: !!this.resetFiltersBtn,
+            typeFilterSelect: !!this.typeFilterSelect
+        });
+        
+        if (!this.applyFiltersBtn) {
+            console.error('❌ ERRO: Botão applyFilters não encontrado!');
+        }
         
         // States
         this.loadingState = document.getElementById('loadingState');
@@ -88,6 +109,7 @@ class ClientManager {
         // Search
         this.searchInput.addEventListener('input', this.debounce(() => {
             this.searchTerm = this.searchInput.value.trim();
+            console.log('⌨️ Busca digitada:', this.searchTerm);
             this.applyFilters();
             this.toggleClearButton();
         }, 300));
@@ -106,21 +128,32 @@ class ClientManager {
             this.microregionFilter = '';
             await this.updateCityFilter();
             await this.updateMicroregionFilter();
-            this.applyFilters();
         });
         
         this.cityFilterSelect.addEventListener('change', () => {
-            this.cityFilter = this.cityFilterSelect.value;
-            this.applyFilters();
+            // Usar o texto (nome da cidade) para comparar com client.cidade
+            const sel = this.cityFilterSelect;
+            const opt = sel.options && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex] : null;
+            const text = opt ? opt.textContent : '';
+            this.cityFilter = sel.value ? text : '';
         });
         
         this.microregionFilterSelect.addEventListener('change', () => {
             this.microregionFilter = this.microregionFilterSelect.value;
-            this.applyFilters();
         });
         
         this.typeFilterSelect.addEventListener('change', () => {
             this.typeFilter = this.typeFilterSelect.value;
+        });
+        
+        this.applyFiltersBtn.addEventListener('click', () => {
+            console.log('🔵 Botão Aplicar Filtros clicado!');
+            console.log('🔍 Filtros atuais:', {
+                search: this.searchTerm,
+                state: this.stateFilter,
+                city: this.cityFilter,
+                type: this.typeFilter
+            });
             this.applyFilters();
         });
         
@@ -334,27 +367,42 @@ class ClientManager {
      * Aplica filtros e busca
      */
     applyFilters(page = 1) {
+        console.log('🔧 applyFilters() chamado. Página:', page);
+        console.log('📊 Estado atual:', {
+            searchTerm: this.searchTerm,
+            stateFilter: this.stateFilter,
+            cityFilter: this.cityFilter,
+            typeFilter: this.typeFilter,
+            apiAvailable: this.apiAvailable,
+            totalClients: this.clients.length
+        });
+        
+        // Sempre filtrar localmente usando a lista já carregada
         this.currentPage = page;
-        if (this.apiAvailable) {
-            this.loadClientsFromAPI(page);
-        } else {
-            let tempClients = [...this.clients];
-            if (this.searchTerm) {
-                tempClients = tempClients.filter(client => this.matchesSearchTerm(client, this.searchTerm));
-            }
-            if (this.stateFilter) {
-                tempClients = tempClients.filter(client => client.uf === this.stateFilter);
-            }
-            if (this.cityFilter) {
-                tempClients = tempClients.filter(client => client.cidade === this.cityFilter);
-            }
-            if (this.typeFilter) {
-                tempClients = tempClients.filter(client => client.tipo === this.typeFilter);
-            }
-            this.filteredClients = tempClients;
-            this.renderTable();
-            this.renderPagination();
+        console.log('💾 Filtrando localmente...');
+        let tempClients = [...this.clients];
+        console.log('📋 Total de clientes antes dos filtros:', tempClients.length);
+
+        if (this.searchTerm) {
+            tempClients = tempClients.filter(client => this.matchesSearchTerm(client, this.searchTerm));
+            console.log('🔍 Após busca:', tempClients.length, 'clientes');
         }
+        if (this.stateFilter) {
+            tempClients = tempClients.filter(client => client.uf === this.stateFilter);
+            console.log('🗺️ Após filtro de estado:', tempClients.length, 'clientes');
+        }
+        if (this.cityFilter) {
+            tempClients = tempClients.filter(client => client.cidade === this.cityFilter);
+            console.log('🏙️ Após filtro de cidade:', tempClients.length, 'clientes');
+        }
+        if (this.typeFilter) {
+            tempClients = tempClients.filter(client => client.tipo === this.typeFilter);
+            console.log('🏷️ Após filtro de tipo:', tempClients.length, 'clientes');
+        }
+        this.filteredClients = tempClients;
+        console.log('✅ Clientes filtrados finais:', this.filteredClients.length);
+        this.renderTable();
+        this.renderPagination();
         this.updateResultsInfo();
         if (this.filteredClients.length === 0) {
             this.showEmptyState();
@@ -368,7 +416,17 @@ class ClientManager {
      */
     matchesSearchTerm(client, searchTerm) {
         const term = searchTerm.toLowerCase();
-        const searchFields = [client.nome, client.observacoes, client.telefone, client.cnpj, client.cidade, client.uf];
+        // Busca por nome, tipo (convertido para texto legível), telefone, CNPJ, cidade, estado
+        const typeText = clientTypes[client.tipo] || client.tipo || '';
+        const searchFields = [
+            client.nome, 
+            typeText,
+            client.telefone, 
+            client.cnpj, 
+            client.cidade, 
+            client.uf,
+            client.email
+        ];
         return searchFields.some(field => field && field.toLowerCase().includes(term));
     }
 
@@ -440,18 +498,32 @@ class ClientManager {
         const typeText = clientTypes[client.tipo] || client.tipo || 'N/A';
         return `
             <tr class="client-row" data-client-id="${client.id}" tabindex="0" role="button" aria-label="Selecionar cliente ${client.nome}">
+                <td class="checkbox-cell">
+                    <input type="checkbox" class="row-checkbox" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" data-client-phone="${this.escapeHtml(client.telefone)}" data-client-email="${this.escapeHtml(client.email || '')}" onclick="event.stopPropagation()">
+                </td>
                 <td class="client-name">${this.escapeHtml(client.nome)}</td>
-                <td class="client-address">${this.escapeHtml(client.observacoes)}</td>
+                <td class="client-type">${this.escapeHtml(typeText)}</td>
                 <td class="client-phone">${this.escapeHtml(client.telefone)}</td>
                 <td class="client-cnpj">${this.escapeHtml(client.cnpj)}</td>
                 <td class="client-city">${this.escapeHtml(client.cidade)}</td>
                 <td class="client-state">${this.escapeHtml(client.uf)}</td>
                 <td>
                     <div class="actions-container">
-                        <button class="action-btn btn-view" data-action="view" data-client-id="${client.id}" title="Ver detalhes" aria-label="Ver detalhes de ${client.nome}"><i data-lucide="eye"></i></button>
-                        <button class="action-btn btn-edit" data-action="edit" data-client-id="${client.id}" title="Editar cliente" aria-label="Editar ${client.nome}"><i data-lucide="edit"></i></button>
-                        <button class="action-btn btn-delete" data-action="delete" data-client-id="${client.id}" title="Excluir cliente" aria-label="Excluir ${client.nome}"><i data-lucide="trash-2"></i></button>
-                        <button class="action-btn btn-more" data-action="more" data-client-id="${client.id}" title="Mais opções" aria-label="Mais opções para ${client.nome}"><i data-lucide="more-horizontal"></i></button>
+                        <button class="action-icon-btn view-btn" data-action="view" data-client-id="${client.id}" title="Visualizar" aria-label="Visualizar ${client.nome}">
+                            <i data-lucide="eye"></i>
+                        </button>
+                        <button class="action-icon-btn whatsapp-btn" data-action="whatsapp" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" data-client-phone="${this.escapeHtml(client.telefone)}" title="WhatsApp" aria-label="Enviar WhatsApp para ${client.nome}">
+                            <i data-lucide="message-circle"></i>
+                        </button>
+                        <button class="action-icon-btn email-btn" data-action="email" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" data-client-email="${this.escapeHtml(client.email || '')}" title="E-mail" aria-label="Enviar E-mail para ${client.nome}">
+                            <i data-lucide="mail"></i>
+                        </button>
+                        <button class="action-icon-btn document-btn" data-action="document" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" title="Documento" aria-label="Enviar Documento para ${client.nome}">
+                            <i data-lucide="file-text"></i>
+                        </button>
+                        <button class="action-icon-btn delete-btn" data-action="delete" data-client-id="${client.id}" title="Excluir" aria-label="Excluir ${client.nome}">
+                            <i data-lucide="trash-2"></i>
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -462,9 +534,20 @@ class ClientManager {
      * Anexa event listeners para as linhas da tabela
      */
     attachRowEventListeners() {
+        // Checkboxes
+        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                e.stopPropagation();
+                if (window.bulkSendManager) {
+                    window.bulkSendManager.handleRowCheckboxChange(checkbox);
+                }
+            });
+        });
+        
+        // Linhas da tabela
         document.querySelectorAll('.client-row').forEach(row => {
             row.addEventListener('click', (e) => {
-                if (!e.target.closest('.action-btn')) {
+                if (!e.target.closest('.action-icon-btn') && !e.target.closest('.row-checkbox')) {
                     this.showClientDetails(row.dataset.clientId);
                 }
             });
@@ -475,11 +558,13 @@ class ClientManager {
                 }
             });
         });
-        document.querySelectorAll('.action-btn').forEach(button => {
+        
+        // Botões de ação
+        document.querySelectorAll('.action-icon-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const { action, clientId } = e.currentTarget.dataset;
-                this.handleClientAction(action, clientId);
+                this.handleClientAction(action, clientId, e.currentTarget);
             });
         });
     }
@@ -487,9 +572,10 @@ class ClientManager {
     /**
      * Manipula ações do cliente
      */
-    handleClientAction(action, clientId) {
+    handleClientAction(action, clientId, buttonElement) {
         const client = this.clients.find(c => c.id.toString() === clientId);
         if (!client) return;
+        
         switch (action) {
             case 'view':
                 this.showClientDetails(clientId);
@@ -499,6 +585,35 @@ class ClientManager {
                 break;
             case 'delete':
                 this.confirmDeleteClient(clientId);
+                break;
+            case 'whatsapp':
+                if (window.bulkSendManager) {
+                    window.bulkSendManager.openQuickWhatsApp({
+                        id: client.id,
+                        nome: client.nome,
+                        name: client.nome,
+                        telefone: client.telefone
+                    });
+                }
+                break;
+            case 'email':
+                if (window.bulkSendManager) {
+                    window.bulkSendManager.openQuickEmail({
+                        id: client.id,
+                        nome: client.nome,
+                        name: client.nome,
+                        email: client.email || ''
+                    });
+                }
+                break;
+            case 'document':
+                if (window.bulkSendManager) {
+                    window.bulkSendManager.openQuickDocument({
+                        id: client.id,
+                        nome: client.nome,
+                        name: client.nome
+                    });
+                }
                 break;
             case 'more':
                 this.showToast('info', `Mais opções para: ${client.nome}`);
@@ -665,12 +780,14 @@ class ClientManager {
     updateResultsInfo() {
         const total = this.clients.length;
         const filtered = this.filteredClients.length;
+        console.log('📊 updateResultsInfo:', { total, filtered });
         if (filtered === total) {
             this.resultsCount.textContent = `${filtered} clientes encontrados`;
         } else {
             this.resultsCount.textContent = `${filtered} de ${total} clientes encontrados`;
         }
         this.totalCount.textContent = '';
+        console.log('✅ Texto exibido:', this.resultsCount.textContent);
     }
 
     async resetFilters() {

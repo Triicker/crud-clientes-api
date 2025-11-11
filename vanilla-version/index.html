@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-styles.css">
     <link rel="stylesheet" href="edit-modal-styles.css">
+    <link rel="stylesheet" href="bulk-send-styles.css">
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -53,10 +54,17 @@
             </div>
 
             <div class="title-section">
+                <!-- Logo da marca -->
+                <img 
+                    src="https://midiasave-5c064.web.app/img-game/etica-branco.png" 
+                    alt="Ética" 
+                    class="header-logo"
+                    loading="lazy"
+                />
                 <h1 class="title">Sistema de Gerenciamento de Clientes</h1>
                 <div class="system-status" id="systemStatus">
                     <span class="status-indicator online"></span>
-                    <span class="status-text">Sistema Online</span>
+                    <span class="status-text"></span>
                 </div>
             </div>
         </header>
@@ -97,6 +105,11 @@
                         <option value="school">Escola</option>
                     </select>
                     
+                    <button id="applyFilters" class="apply-button">
+                        <i data-lucide="filter" class="filter-icon"></i>
+                        Aplicar Filtros
+                    </button>
+                    
                     <button id="resetFilters" class="reset-button">
                         <i data-lucide="refresh-cw" class="reset-icon"></i>
                         Limpar Filtros
@@ -134,19 +147,30 @@
 
         <!-- Client Table -->
         <section class="table-section" id="tableSection" style="display: none;">
+            <!-- Botão de Novo Envio -->
+            <div class="bulk-actions-container">
+                <button id="bulkSendButton" class="bulk-send-button">
+                    <i data-lucide="send"></i>
+                    <span>+ Novo Envio</span>
+                </button>
+            </div>
+
             <div class="table-container">
                 <table class="client-table" id="clientTable">
                     <thead>
                         <tr class="table-header">
+                            <th class="th-checkbox checkbox-cell" scope="col">
+                                <input type="checkbox" id="selectAllCheckbox" class="select-all-checkbox" title="Selecionar todos">
+                            </th>
                             <th class="th-client" scope="col">
                                 <button class="sort-button" data-column="name">
                                     Cliente
                                     <i data-lucide="chevron-up-down" class="sort-icon"></i>
                                 </button>
                             </th>
-                            <th class="th-address" scope="col">
-                                <button class="sort-button" data-column="address">
-                                    Observações
+                            <th class="th-type" scope="col">
+                                <button class="sort-button" data-column="type">
+                                    Tipo
                                     <i data-lucide="chevron-up-down" class="sort-icon"></i>
                                 </button>
                             </th>
@@ -465,12 +489,243 @@
     <!-- Toast Notifications -->
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- Modal de Novo Envio (Bulk Send) -->
+    <div id="bulkSendModal" class="bulk-send-modal">
+        <div class="bulk-send-modal-backdrop"></div>
+        <div class="bulk-send-modal-content">
+            <div class="bulk-send-modal-header">
+                <h2>Novo Envio em Massa</h2>
+                <button id="closeBulkSendModal" class="bulk-send-close-btn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <!-- Wizard Steps -->
+            <div class="bulk-send-modal-body">
+                <div class="wizard-steps">
+                    <div class="wizard-step active" data-step="1">
+                        <div class="wizard-step-number">1</div>
+                        <div class="wizard-step-label">Tipo de Envio</div>
+                    </div>
+                    <div class="wizard-step" data-step="2">
+                        <div class="wizard-step-number">2</div>
+                        <div class="wizard-step-label">Selecionar Contatos</div>
+                    </div>
+                    <div class="wizard-step" data-step="3">
+                        <div class="wizard-step-number">3</div>
+                        <div class="wizard-step-label">Confirmar e Enviar</div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Escolher tipo de envio -->
+                <div id="wizardStep1" class="wizard-step-content">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem; color: #1f2937;">Escolha o tipo de envio:</h3>
+                    <div class="send-type-options">
+                        <div class="send-type-card whatsapp" data-type="whatsapp">
+                            <div class="send-type-icon">
+                                <i data-lucide="message-circle"></i>
+                            </div>
+                            <div class="send-type-title">WhatsApp</div>
+                            <div class="send-type-description">Enviar mensagem via WhatsApp</div>
+                        </div>
+                        <div class="send-type-card email" data-type="email">
+                            <div class="send-type-icon">
+                                <i data-lucide="mail"></i>
+                            </div>
+                            <div class="send-type-title">E-mail</div>
+                            <div class="send-type-description">Enviar e-mail para contatos</div>
+                        </div>
+                        <div class="send-type-card document" data-type="document">
+                            <div class="send-type-icon">
+                                <i data-lucide="file-text"></i>
+                            </div>
+                            <div class="send-type-title">Documento</div>
+                            <div class="send-type-description">Enviar documento ou arquivo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Selecionar contatos -->
+                <div id="wizardStep2" class="wizard-step-content" style="display: none;">
+                    <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: #1f2937;">Selecione os destinatários:</h3>
+                    <div class="select-all-contacts">
+                        <input type="checkbox" id="selectAllWizard">
+                        <span>Selecionar todos os contatos</span>
+                    </div>
+                    <div class="contacts-list" id="contactsList">
+                        <!-- Contatos serão preenchidos dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- Step 3: Confirmar e enviar -->
+                <div id="wizardStep3" class="wizard-step-content" style="display: none;">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem; color: #1f2937;">Confirme os dados do envio:</h3>
+                    <div class="send-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Tipo de Envio:</span>
+                            <span class="summary-value" id="summaryType">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Destinatários:</span>
+                            <span class="summary-value" id="summaryRecipients">0 selecionados</span>
+                        </div>
+                    </div>
+
+                    <!-- Área de mensagem (WhatsApp/Email) -->
+                    <div id="messageInputArea" class="message-input-area" style="display: none;">
+                        <label for="bulkMessageText">Mensagem:</label>
+                        <textarea id="bulkMessageText" placeholder="Digite sua mensagem aqui..."></textarea>
+                    </div>
+
+                    <!-- Área de upload (Documento) -->
+                    <div id="fileUploadArea" class="file-upload-area" style="display: none;">
+                        <label>Anexar Documento:</label>
+                        <div class="file-upload-box" id="fileUploadBox">
+                            <input type="file" id="bulkFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+                            <div class="file-upload-icon">
+                                <i data-lucide="upload"></i>
+                            </div>
+                            <div class="file-upload-text">Clique ou arraste um arquivo aqui</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bulk-send-modal-footer">
+                <button id="wizardBackBtn" class="wizard-btn wizard-btn-back" style="display: none;">
+                    <i data-lucide="chevron-left"></i>
+                    <span>Voltar</span>
+                </button>
+                <div style="flex: 1;"></div>
+                <button id="wizardNextBtn" class="wizard-btn wizard-btn-next">
+                    <span>Próximo</span>
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Envio Rápido - WhatsApp -->
+    <div id="quickWhatsAppModal" class="quick-send-modal whatsapp">
+        <div class="bulk-send-modal-backdrop"></div>
+        <div class="quick-send-modal-content">
+            <div class="quick-send-header">
+                <div class="quick-send-header-icon">
+                    <i data-lucide="message-circle"></i>
+                </div>
+                <div class="quick-send-title">
+                    <h3>Enviar WhatsApp</h3>
+                    <p id="whatsappClientName">Cliente</p>
+                </div>
+                <button class="bulk-send-close-btn" id="closeWhatsAppModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="quick-send-body">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Mensagem:</label>
+                <textarea id="quickWhatsAppMessage" style="width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; font-family: inherit;" placeholder="Digite sua mensagem..."></textarea>
+            </div>
+            <div class="quick-send-footer">
+                <button class="quick-send-btn quick-send-btn-cancel" id="cancelWhatsAppSend">Cancelar</button>
+                <button class="quick-send-btn quick-send-btn-send" id="confirmWhatsAppSend">
+                    <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                    Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Envio Rápido - E-mail -->
+    <div id="quickEmailModal" class="quick-send-modal email">
+        <div class="bulk-send-modal-backdrop"></div>
+        <div class="quick-send-modal-content">
+            <div class="quick-send-header">
+                <div class="quick-send-header-icon">
+                    <i data-lucide="mail"></i>
+                </div>
+                <div class="quick-send-title">
+                    <h3>Enviar E-mail</h3>
+                    <p id="emailClientName">Cliente</p>
+                </div>
+                <button class="bulk-send-close-btn" id="closeEmailModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="quick-send-body">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Assunto:</label>
+                    <input type="text" id="quickEmailSubject" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;" placeholder="Assunto do e-mail">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Mensagem:</label>
+                    <textarea id="quickEmailMessage" style="width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; font-family: inherit;" placeholder="Digite sua mensagem..."></textarea>
+                </div>
+            </div>
+            <div class="quick-send-footer">
+                <button class="quick-send-btn quick-send-btn-cancel" id="cancelEmailSend">Cancelar</button>
+                <button class="quick-send-btn quick-send-btn-send" id="confirmEmailSend">
+                    <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                    Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Envio Rápido - Documento -->
+    <div id="quickDocumentModal" class="quick-send-modal document">
+        <div class="bulk-send-modal-backdrop"></div>
+        <div class="quick-send-modal-content">
+            <div class="quick-send-header">
+                <div class="quick-send-header-icon">
+                    <i data-lucide="file-text"></i>
+                </div>
+                <div class="quick-send-title">
+                    <h3>Enviar Documento</h3>
+                    <p id="documentClientName">Cliente</p>
+                </div>
+                <button class="bulk-send-close-btn" id="closeDocumentModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="quick-send-body">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Documento:</label>
+                    <div class="file-upload-box" style="padding: 1.5rem;">
+                        <input type="file" id="quickDocumentFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+                        <div class="file-upload-icon" style="margin-bottom: 0.5rem;">
+                            <i data-lucide="upload"></i>
+                        </div>
+                        <div class="file-upload-text">Clique para selecionar arquivo</div>
+                    </div>
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Mensagem (opcional):</label>
+                    <textarea id="quickDocumentMessage" style="width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; font-family: inherit;" placeholder="Adicione uma mensagem..."></textarea>
+                </div>
+            </div>
+            <div class="quick-send-footer">
+                <button class="quick-send-btn quick-send-btn-cancel" id="cancelDocumentSend">Cancelar</button>
+                <button class="quick-send-btn quick-send-btn-send" id="confirmDocumentSend">
+                    <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                    Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Flutuante para Mobile (quando há selecionados) -->
+    <button id="bulkSendFloatingBtn" class="bulk-send-floating-btn">
+        <i data-lucide="send"></i>
+        <span>Enviar para <span class="selected-count-badge" id="selectedCountBadge">0</span></span>
+    </button>
+
     <!-- Scripts -->
     <script src="auth-manager.js"></script>
     <script src="ibge-api.js"></script>
     <script src="api-client.js"></script>
     <script src="app-manager.js"></script>
     <script src="edit-modal.js"></script>
+    <script src="bulk-send.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

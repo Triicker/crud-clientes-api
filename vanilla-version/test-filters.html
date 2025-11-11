@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Filtros - Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #059669;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        input, select {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-panel">
+        <h2>🔧 Teste de Filtros e Busca</h2>
+        <p>Este teste verifica se os event listeners estão funcionando corretamente.</p>
+        
+        <div>
+            <h3>Busca:</h3>
+            <input type="text" id="testSearch" placeholder="Digite algo...">
+            <span id="searchValue"></span>
+        </div>
+        
+        <div>
+            <h3>Filtros:</h3>
+            <select id="testState">
+                <option value="">Selecione Estado</option>
+                <option value="SP">São Paulo</option>
+                <option value="RJ">Rio de Janeiro</option>
+            </select>
+            
+            <select id="testType">
+                <option value="">Selecione Tipo</option>
+                <option value="school">Escola</option>
+                <option value="network">Rede</option>
+            </select>
+        </div>
+        
+        <div>
+            <h3>Botões:</h3>
+            <button id="testApply" class="test-button">Aplicar Filtros</button>
+            <button id="testReset" class="test-button" style="background: #6b7280;">Limpar Filtros</button>
+        </div>
+        
+        <div class="log" id="logPanel">
+            <div class="log-entry">🟢 Sistema de log iniciado...</div>
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('logPanel');
+        const testSearch = document.getElementById('testSearch');
+        const testState = document.getElementById('testState');
+        const testType = document.getElementById('testType');
+        const testApply = document.getElementById('testApply');
+        const testReset = document.getElementById('testReset');
+        const searchValue = document.getElementById('searchValue');
+
+        function addLog(message, color = '#d4d4d4') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = color;
+            entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Teste de debounce
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Event listeners
+        testSearch.addEventListener('input', debounce(() => {
+            const value = testSearch.value.trim();
+            addLog(`⌨️ Busca digitada: "${value}"`, '#10b981');
+            searchValue.textContent = `Valor: "${value}"`;
+        }, 300));
+
+        testState.addEventListener('change', () => {
+            addLog(`🗺️ Estado selecionado: ${testState.value}`, '#3b82f6');
+        });
+
+        testType.addEventListener('change', () => {
+            addLog(`🏷️ Tipo selecionado: ${testType.value}`, '#8b5cf6');
+        });
+
+        testApply.addEventListener('click', () => {
+            addLog('🔵 Botão APLICAR FILTROS clicado!', '#10b981');
+            addLog(`   Estado: ${testState.value || '(vazio)'}`, '#6b7280');
+            addLog(`   Tipo: ${testType.value || '(vazio)'}`, '#6b7280');
+            addLog(`   Busca: ${testSearch.value || '(vazio)'}`, '#6b7280');
+        });
+
+        testReset.addEventListener('click', () => {
+            addLog('🔴 Botão LIMPAR clicado!', '#ef4444');
+            testSearch.value = '';
+            testState.value = '';
+            testType.value = '';
+            searchValue.textContent = '';
+        });
+
+        addLog('✅ Todos os event listeners foram configurados');
+        addLog('👉 Teste digitando no campo de busca');
+        addLog('👉 Teste selecionando filtros');
+        addLog('👉 Teste clicando nos botões');
+    </script>
+</body>
+</html>
