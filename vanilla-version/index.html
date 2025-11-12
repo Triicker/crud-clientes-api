@@ -159,9 +159,6 @@
                 <table class="client-table" id="clientTable">
                     <thead>
                         <tr class="table-header">
-                            <th class="th-checkbox checkbox-cell" scope="col">
-                                <input type="checkbox" id="selectAllCheckbox" class="select-all-checkbox" title="Selecionar todos">
-                            </th>
                             <th class="th-client" scope="col">
                                 <button class="sort-button" data-column="name">
                                     Cliente
@@ -199,6 +196,21 @@
                                 </button>
                             </th>
                             <th class="th-actions" scope="col">Ações</th>
+                            <th class="th-checkbox checkbox-cell" scope="col">
+                                <span 
+                                    class="checkbox-legend"
+                                    title="Selecione múltiplos clientes marcando as caixas; use este checkbox para marcar/desmarcar todos desta página."
+                                >
+                                    Todos
+                                </span>
+                                <input 
+                                    type="checkbox" 
+                                    id="selectAllCheckbox" 
+                                    class="select-all-checkbox" 
+                                    title="Selecionar todos os clientes desta página" 
+                                    aria-label="Selecionar todos os clientes desta página"
+                                >
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">

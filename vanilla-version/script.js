@@ -498,9 +498,6 @@ class ClientManager {
         const typeText = clientTypes[client.tipo] || client.tipo || 'N/A';
         return `
             <tr class="client-row" data-client-id="${client.id}" tabindex="0" role="button" aria-label="Selecionar cliente ${client.nome}">
-                <td class="checkbox-cell">
-                    <input type="checkbox" class="row-checkbox" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" data-client-phone="${this.escapeHtml(client.telefone)}" data-client-email="${this.escapeHtml(client.email || '')}" onclick="event.stopPropagation()">
-                </td>
                 <td class="client-name">${this.escapeHtml(client.nome)}</td>
                 <td class="client-type">${this.escapeHtml(typeText)}</td>
                 <td class="client-phone">${this.escapeHtml(client.telefone)}</td>
@@ -518,13 +515,10 @@ class ClientManager {
                         <button class="action-icon-btn email-btn" data-action="email" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" data-client-email="${this.escapeHtml(client.email || '')}" title="E-mail" aria-label="Enviar E-mail para ${client.nome}">
                             <i data-lucide="mail"></i>
                         </button>
-                        <button class="action-icon-btn document-btn" data-action="document" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" title="Documento" aria-label="Enviar Documento para ${client.nome}">
-                            <i data-lucide="file-text"></i>
-                        </button>
-                        <button class="action-icon-btn delete-btn" data-action="delete" data-client-id="${client.id}" title="Excluir" aria-label="Excluir ${client.nome}">
-                            <i data-lucide="trash-2"></i>
-                        </button>
                     </div>
+                </td>
+                <td class="checkbox-cell">
+                    <input type="checkbox" class="row-checkbox" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" data-client-phone="${this.escapeHtml(client.telefone)}" data-client-email="${this.escapeHtml(client.email || '')}" onclick="event.stopPropagation()" aria-label="Selecionar ${this.escapeHtml(client.nome)}" title="Selecionar ${this.escapeHtml(client.nome)}">
                 </td>
             </tr>
         `;

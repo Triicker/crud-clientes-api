@@ -3,34 +3,12 @@
 /* ============================================================================ */
 
 /* ===== CHECKBOXES NA TABELA ===== */
-.checkbox-cell {
-    width: 40px;
-    text-align: center;
-    padding: 0.75rem 0.5rem;
-}
-
-.row-checkbox {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #667eea;
-    border-radius: 4px;
-}
-
-.select-all-checkbox {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #667eea;
-}
-
-/* ===== BOTÃO NOVO ENVIO (TOPO DIREITO) ===== */
-.bulk-actions-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
+.checkbox-cell { width: 40px; text-align: center; padding: 0.75rem 0.5rem; }
+.th-checkbox { width: 120px; }
+.checkbox-legend { display: inline-flex; align-items: left; gap: 6px; font-size: 0.65rem; font-weight: 700; letter-spacing: .5px; color: #ffffff; margin-bottom: 2px; }
+.checkbox-legend-icon { width: 12px; height: 12px; }
+.row-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; border-radius: 4px; }
+.select-all-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; }
 
 .bulk-send-button {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -130,6 +108,14 @@
 
 .action-icon-btn.delete-btn:hover {
     background: #fee2e2;
+}
+
+/* ===== BOTÃO NOVO ENVIO (TOPO DIREITO) ===== */
+.bulk-actions-container {
+    display: flex;
+    justify-content: flex-end; /* alinhar botão "+ Novo Envio" à direita */
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
 /* ===== MODAL DE NOVO ENVIO (MULTI-ETAPAS) ===== */
