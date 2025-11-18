@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Contratos e Licitações PNCP</title>
+    <!-- v2.1 - Endpoint correto /orgaos/{cnpj}/contratos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: #1a202c;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        h1 + p {
+            text-align: center;
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        h2 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        h3 {
+            color: #334155;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .instructions {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .instructions ul {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+            color: #475569;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .instructions code {
+            background: #ffffff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #764ba2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: #fafbff;
+        }
+
+        input::placeholder {
+            color: #94a3b8;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card:hover {
+            border-color: #667eea;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(102, 126, 234, 0.2);
+        }
+
+        .card p {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        .card strong {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .card-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .card-link:hover {
+            color: #764ba2;
+            transform: translateX(4px);
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            align-items: center;
+        }
+
+        .pagination-controls button {
+            width: auto;
+            padding: 0.75rem 1.5rem;
+            margin-top: 0;
+        }
+
+        .pagination-controls button:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .pagination-info {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        #loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.25rem;
+            color: #667eea;
+            font-weight: 600;
+            display: none;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            border-left: 4px solid #ef4444;
+            display: none;
+        }
+
+        #requestLog {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #475569;
+            word-wrap: break-word;
+        }
+
+        #requestLog pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        #keywordSearchSection {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e1;
+        }
+
+        #keywordResultCount {
+            margin-top: 0.75rem;
+            font-weight: 600;
+            color: #059669;
+        }
+
+        #exportCsvBtn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            width: auto;
+            padding: 0.75rem 1.5rem;
+            margin-top: 0;
+            margin-left: 1rem;
+        }
+
+        .cnpj-lookup-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+            width: auto;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .cnpj-lookup-btn:hover {
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .cnpj-details-container {
+            margin-top: 1rem;
+        }
+
+        .cnpj-details-card {
+            background: #fffbeb;
+            border: 2px solid #fbbf24;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .cnpj-details-card.error {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 500px;
+            }
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #e2e8f0;
+            margin: 2.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+
+            .pagination-controls {
+                flex-direction: column;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="margin-bottom: 1.5rem;">
+            <button onclick="window.location.href='/index.html'" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                <span style="font-size: 1.2rem;">←</span>
+                Voltar para Clientes
+            </button>
+        </div>
+        <h1>Visualizador de Contratos e Licitações PNCP</h1>
+        <p>Use esta ferramenta para consultar contratos e licitações na API do PNCP e visualizar os resultados de forma organizada em cards. A paginação abaixo dos cards permite navegar pelos resultados já carregados da API.</p>
+
+        <div class="instructions">
+            <h3>Como Usar - Guia Completo</h3>
+            <p><strong>📄 Contratos Gerais:</strong></p>
+            <ul>
+                <li>Busca ampla por todos os contratos publicados em um período.</li>
+                <li>Útil para análises gerais sem focar em fornecedor específico.</li>
+            </ul>
+            <p><strong>🔍 Busca por Fornecedor:</strong></p>
+            <ul>
+                <li>Use quando quiser analisar todos os contratos onde uma empresa/pessoa específica aparece como <strong>fornecedor contratado</strong>.</li>
+                <li>Insira apenas números do CNPJ/CPF (sem pontos, traços ou barras).</li>
+                <li>Ideal para análise de histórico de fornecedores.</li>
+            </ul>
+            <p><strong>🏢 Busca por Órgão:</strong></p>
+            <ul>
+                <li>Lista <strong>todos os contratos</strong> realizados por um órgão público específico.</li>
+                <li>Usa o endpoint correto: <code>/orgaos/{cnpj}/contratos</code></li>
+                <li>Insira apenas números do CNPJ do órgão (14 dígitos).</li>
+                <li>Útil para auditorias, pesquisas sobre transparência, acompanhamento de compras públicas.</li>
+            </ul>
+            <p><strong>🏛️ Licitações:</strong></p>
+            <ul>
+                <li>Todos os filtros são opcionais - deixe vazio para buscar em todo o Brasil.</li>
+                <li>UF: Filtra por estado (ex: BA, SP, RJ).</li>
+                <li>Modalidade: Filtra por tipo de licitação (Pregão, Dispensa, Inexigibilidade, etc.).</li>
+                <li>CNPJ do Órgão: Filtra licitações de um órgão específico.</li>
+            </ul>
+            <p><strong>💡 Dica:</strong> Clique no botão "Consultar Documento" em qualquer card para ver dados detalhados do CNPJ/CPF via Brasil API.</p>
+        </div>
+
+        <div class="section">
+            <h2>📄 Consultar Contratos</h2>
+            <p>Busca todos os contratos publicados no período informado.</p>
+
+            <label for="cont_dataInicial">Data Inicial:</label>
+            <input type="date" id="cont_dataInicial">
+
+            <label for="cont_dataFinal">Data Final:</label>
+            <input type="date" id="cont_dataFinal">
+
+            <label for="cont_pagina">Página da API:</label>
+            <input type="number" id="cont_pagina" value="1" min="1">
+
+            <button onclick="consultarContratos()">🔎 Buscar Contratos</button>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Busca por CNPJ/CPF - Contratos como Fornecedor</h2>
+            <p>Busca contratos onde o CNPJ/CPF aparece como <strong>fornecedor contratado</strong>. Mais efetivo para análise de empresas.</p>
+            
+            <label for="doc_busca">CNPJ/CPF do Fornecedor (apenas números):</label>
+            <input type="text" id="doc_busca" placeholder="Ex: 00059311000126 ou 12345678901" maxlength="14">
+
+            <label for="doc_dataInicial">Data Inicial:</label>
+            <input type="date" id="doc_dataInicial">
+
+            <label for="doc_dataFinal">Data Final:</label>
+            <input type="date" id="doc_dataFinal">
+
+            <label for="doc_pagina">Página da API:</label>
+            <input type="number" id="doc_pagina" value="1" min="1">
+
+            <button onclick="consultarContratosPorDocumento()">🔎 Buscar Contratos do Fornecedor</button>
+        </div>
+
+        <div class="section">
+            <h2>🏢 Busca por Órgão - Todos os Contratos do Órgão</h2>
+            <p>Lista todos os contratos de um órgão público específico. <strong>Usa endpoint correto: /orgaos/{cnpj}/contratos</strong></p>
+            
+            <label for="orgao_cnpj">CNPJ do Órgão (14 dígitos):</label>
+            <input type="text" id="orgao_cnpj" placeholder="Ex: 09198876000169" maxlength="14">
+
+            <label for="orgao_dataInicial">Data Inicial:</label>
+            <input type="date" id="orgao_dataInicial">
+
+            <label for="orgao_dataFinal">Data Final:</label>
+            <input type="date" id="orgao_dataFinal">
+
+            <label for="orgao_pagina">Página da API:</label>
+            <input type="number" id="orgao_pagina" value="1" min="1">
+
+            <button onclick="consultarContratosPorOrgao()">🏛️ Listar Contratos do Órgão</button>
+        </div>
+
+        <div class="section">
+            <h2>🏛️ Consultar Licitações</h2>
+            <p>Busca licitações com filtros opcionais. Deixe qualquer campo vazio para buscar em todo o Brasil.</p>
+
+            <label for="lic_dataInicial_lic">Data Inicial:</label>
+            <input type="date" id="lic_dataInicial_lic">
+
+            <label for="lic_dataFinal_lic">Data Final:</label>
+            <input type="date" id="lic_dataFinal_lic">
+
+            <label for="lic_pagina">Página da API:</label>
+            <input type="number" id="lic_pagina" value="1" min="1">
+
+            <label for="lic_uf">UF (Opcional - deixe vazio para todas):</label>
+            <input type="text" id="lic_uf" placeholder="Ex: BA, SP, RJ..." maxlength="2">
+
+            <label for="lic_modalidade">Modalidade (Opcional):</label>
+            <select id="lic_modalidade">
+                <option value="">Todas as Modalidades</option>
+                <option value="1">Concorrência</option>
+                <option value="2">Tomada de Preços</option>
+                <option value="3">Convite</option>
+                <option value="4">Concurso</option>
+                <option value="5">Leilão</option>
+                <option value="6">Pregão</option>
+                <option value="7">Dispensa de Licitação</option>
+                <option value="8">Inexigibilidade</option>
+                <option value="9">Pré-qualificação</option>
+                <option value="10">Concorrência Internacional</option>
+                <option value="11">Diálogo Competitivo</option>
+            </select>
+
+            <label for="lic_cnpj_orgao">CNPJ do Órgão (Opcional - 14 dígitos):</label>
+            <input type="text" id="lic_cnpj_orgao" placeholder="Ex: 00059311000126" maxlength="14">
+
+            <button onclick="consultarContratacoes()">🔍 Buscar Licitações</button>
+        </div>
+
+        <hr>
+
+        <div class="section">
+            <h2 id="resultsTitle">📊 Resultados:</h2>
+            <div id="keywordSearchSection">
+                <label for="keywordSearch">🔍 Filtrar por Palavra-Chave nos Resultados:</label>
+                <input type="text" id="keywordSearch" placeholder="Ex: Manutenção, Livros, SEDUC...">
+                <button id="exportCsvBtn" onclick="exportToCsv()" style="margin-top: 1rem; display: none;">Exportar para CSV</button>
+                <p id="keywordResultCount"></p>
+            </div>
+
+            <div id="requestLog">
+                <strong>URL da Requisição:</strong>
+                <pre id="requestUrl"></pre>
+            </div>
+            <p class="error" id="errorMessage" aria-live="assertive"></p>
+            <div id="loading">⏳ Carregando dados da API...</div>
+            <div id="resultCards" class="card-container">
+                <!-- Cards serão injetados aqui -->
+            </div>
+            <div class="pagination-controls">
+                <button id="prevPage" onclick="changeCardPage(-1)" disabled>← Anterior</button>
+                <span id="cardPaginationInfo" class="pagination-info"></span>
+                <button id="nextPage" onclick="changeCardPage(1)" disabled>Próximo →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Módulo de serviço da API
+         * Responsável por todas as chamadas de rede.
+         */
+        const apiService = {
+            BASE_URL_PNCP: 'https://pncp.gov.br/api/consulta/v1/',
+            BASE_URL_BRASILAPI: 'https://brasilapi.com.br/api/cnpj/v1/',
+
+            async fetchContratos(queryParams) {
+                const url = `${this.BASE_URL_PNCP}contratos?${queryParams}`;
+                return this.fetchData(url, 'contratos');
+            },
+
+            async fetchContratosPorDocumento(queryParams) {
+                const url = `${this.BASE_URL_PNCP}contratos?${queryParams}`;
+                return this.fetchData(url, 'contratos');
+            },
+
+            async fetchContratosPorOrgao(cnpj, queryParams) {
+                const url = `${this.BASE_URL_PNCP}orgaos/${cnpj}/contratos?${queryParams}`;
+                return this.fetchData(url, 'contratos');
+            },
+
+            async fetchContratacoes(queryParams) {
+                const url = `${this.BASE_URL_PNCP}contratacoes/publicacao?${queryParams}`;
+                return this.fetchData(url, 'licitacoes');
+            },
+
+            async fetchCnpjData(cnpj) {
+                const cleanedCnpj = String(cnpj).replace(/\D/g, '');
+                const url = `${this.BASE_URL_BRASILAPI}${cleanedCnpj}`;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `Erro ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Erro ao buscar dados do CNPJ ${cleanedCnpj}:`, error);
+                    throw error;
+                }
+            },
+
+            async fetchCpfData(cpf) {
+                const cleanedCpf = String(cpf).replace(/\D/g, '');
+                const url = `${this.BASE_URL_BRASILAPI}cpf/v1/${cleanedCpf}`;
+                 try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `Erro ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Erro ao buscar dados do CPF ${cleanedCpf}:`, error);
+                    throw error;
+                }
+            },
+
+            async fetchData(url, serviceType) {
+                uiService.showRequestUrl(url);
+                try {
+                    const response = await fetch(url, { method: 'GET', headers: { 'accept': '*/*' } });
+                    if (!response.ok) {
+                        let errorMsg = `Erro ${response.status}: ${response.statusText}`;
+                        try {
+                            const errorBody = await response.text();
+                            if (errorBody) errorMsg += ` - ${errorBody}`;
+                        } catch {}
+                        throw new Error(errorMsg);
+                    }
+                    const data = await response.json();
+                    if (!Array.isArray(data)) {
+                        console.warn('API retornou dados que não são array:', data);
+                        return [];
+                    }
+                    return data;
+                } catch (error) {
+                    console.error('Erro ao buscar dados da API:', error);
+                    throw error;
+                }
+            }
+        };
+
+        /**
+         * Módulo de interface do usuário
+         * Gerencia a renderização e manipulação do DOM.
+         */
+        const uiService = {
+            CARDS_PER_PAGE: 10,
+
+            showLoading() {
+                document.getElementById('loading').style.display = 'block';
+            },
+
+            hideLoading() {
+                document.getElementById('loading').style.display = 'none';
+            },
+
+            showError(message) {
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            },
+
+            clearError() {
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.textContent = '';
+                errorElement.style.display = 'none';
+            },
+
+            clearResults() {
+                document.getElementById('resultCards').innerHTML = '';
+            },
+
+            showRequestUrl(url) {
+                document.getElementById('requestUrl').textContent = url;
+            },
+
+            updateTitle(serviceType) {
+                const titleElement = document.getElementById('resultsTitle');
+                titleElement.textContent = serviceType === 'contratos' 
+                    ? '📊 Resultados: Contratos' 
+                    : '📊 Resultados: Licitações';
+            },
+
+            renderResults(data, currentPage, serviceType, keywordFilter) {
+                this.clearResults();
+                
+                if (!data || data.length === 0) {
+                    document.getElementById('resultCards').innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">Nenhum resultado encontrado.</p>';
+                    this.updateCardPaginationControls(0, 0);
+                    return;
+                }
+
+                const startIndex = currentPage * this.CARDS_PER_PAGE;
+                const endIndex = startIndex + this.CARDS_PER_PAGE;
+                const paginatedData = data.slice(startIndex, endIndex);
+
+                const cardsContainer = document.getElementById('resultCards');
+                paginatedData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.originalItem = JSON.stringify(item);
+
+                    if (serviceType === 'contratos') {
+                        card.innerHTML = this.generateContratoCard(item);
+                    } else {
+                        card.innerHTML = this.generateLicitacaoCard(item);
+                    }
+
+                    cardsContainer.appendChild(card);
+                });
+
+                this.updateCardPaginationControls(data.length, currentPage);
+            },
+
+            generateContratoCard(item) {
+                const numeroContrato = item.numeroContratoOrigem || item.numeroControlePNCP || 'Sem número';
+                const objeto = item.objetoContrato || 'Objeto não informado';
+                const valorGlobal = item.valorGlobal !== undefined && item.valorGlobal !== null 
+                    ? `R$ ${parseFloat(item.valorGlobal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                    : 'Valor não informado';
+                const fornecedor = item.nomeRazaoSocialFornecedor || 'Fornecedor não informado';
+                const fornecedorDoc = item.niFornecedor || '';
+                const orgao = item.orgaoEntidade?.razaoSocial || 'Órgão não informado';
+                const unidade = item.unidadeOrgao?.nomeUnidade || 'Unidade não informada';
+                const vigenciaInicio = item.dataVigenciaInicio 
+                    ? new Date(item.dataVigenciaInicio).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) 
+                    : 'Não informada';
+                const vigenciaFim = item.dataVigenciaFim 
+                    ? new Date(item.dataVigenciaFim).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) 
+                    : 'Não informada';
+                const tipoContrato = item.tipoContrato?.nome || 'Não informado';
+                const pncpId = item.numeroControlePNCP || '';
+                const contratoDetailUrl = pncpId 
+                    ? `https://pncp.gov.br/app/contratos/${pncpId.replace(/\//g, '%2F')}`
+                    : '#';
+
+                return `
+                    <p><strong>🆔 Número:</strong> ${numeroContrato}</p>
+                    <p><strong>📄 Objeto:</strong> ${objeto}</p>
+                    <p><strong>💰 Valor Global:</strong> ${valorGlobal}</p>
+                    <p><strong>🏢 Fornecedor:</strong> ${fornecedor}</p>
+                    ${fornecedorDoc ? `<p><strong>📋 Documento:</strong> ${fornecedorDoc}</p>` : ''}
+                    <p><strong>🏛️ Órgão:</strong> ${orgao}</p>
+                    <p><strong>🏢 Unidade:</strong> ${unidade}</p>
+                    <p><strong>📅 Vigência:</strong> ${vigenciaInicio} até ${vigenciaFim}</p>
+                    <p><strong>📑 Tipo:</strong> ${tipoContrato}</p>
+                    <p><strong>🔖 PNCP ID:</strong> ${pncpId}</p>
+                    ${fornecedorDoc ? `<button class="cnpj-lookup-btn" onclick="appController.handleCnpjLookup('${fornecedorDoc}', this.parentElement)">Consultar Documento</button>` : ''}
+                    <div class="cnpj-details-container"></div>
+                    <a href="${contratoDetailUrl}" target="_blank" class="card-link">Ver no Portal PNCP →</a>
+                `;
+            },
+
+            generateLicitacaoCard(item) {
+                const numeroLicitacao = item.numeroCompra || item.numeroControlePNCP || 'Sem número';
+                const objeto = item.objetoCompra || 'Objeto não informado';
+                const valorEstimado = item.valorTotalEstimado !== undefined && item.valorTotalEstimado !== null 
+                    ? `R$ ${parseFloat(item.valorTotalEstimado).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                    : 'Valor não informado';
+                const orgao = item.orgaoEntidade?.razaoSocial || 'Órgão não informado';
+                const unidade = item.unidadeOrgao?.nomeUnidade || 'Unidade não informada';
+                const modalidade = item.modalidadeNome || 'Não informada';
+                const dataPublicacao = item.dataPublicacaoPncp 
+                    ? new Date(item.dataPublicacaoPncp).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) 
+                    : 'Não informada';
+                const pncpId = item.numeroControlePNCP || '';
+                const licitacaoDetailUrl = pncpId 
+                    ? `https://pncp.gov.br/app/editais/${pncpId.replace(/\//g, '%2F')}`
+                    : '#';
+
+                return `
+                    <p><strong>🆔 Número:</strong> ${numeroLicitacao}</p>
+                    <p><strong>📄 Objeto:</strong> ${objeto}</p>
+                    <p><strong>💰 Valor Estimado:</strong> ${valorEstimado}</p>
+                    <p><strong>🏛️ Órgão:</strong> ${orgao}</p>
+                    <p><strong>🏢 Unidade:</strong> ${unidade}</p>
+                    <p><strong>📋 Modalidade:</strong> ${modalidade}</p>
+                    <p><strong>📅 Publicação:</strong> ${dataPublicacao}</p>
+                    <p><strong>🔖 PNCP ID:</strong> ${pncpId}</p>
+                    <a href="${licitacaoDetailUrl}" target="_blank" class="card-link">Ver no Portal PNCP →</a>
+                `;
+            },
+
+            renderCnpjDetailsCard(data, parentCard) {
+                const container = parentCard.querySelector('.cnpj-details-container');
+                if (!container) return;
+
+                const phone1 = data.ddd_telefone_1 ? `(${data.ddd_telefone_1.substring(0,2)}) ${data.ddd_telefone_1.substring(2)}` : null;
+                const phone2 = data.ddd_telefone_2 ? `(${data.ddd_telefone_2.substring(0,2)}) ${data.ddd_telefone_2.substring(2)}` : null;
+                const phoneNumbers = [phone1, phone2].filter(Boolean).join(' / ');
+
+                const isCpf = !!data.data_nascimento;
+
+                const detailsCard = document.createElement('div');
+                detailsCard.className = 'cnpj-details-card';
+                
+                let detailsHtml = `
+                    <p><strong>${isCpf ? 'Nome' : 'Razão Social'}:</strong> ${data.nome || data.razao_social || 'N/A'}</p>
+                    ${!isCpf ? `<p><strong>Nome Fantasia:</strong> ${data.nome_fantasia || 'N/A'}</p>` : ''}
+                    <p><strong>Situação:</strong> ${data.descricao_situacao_cadastral || 'N/A'}</p>
+                    ${isCpf ? `<p><strong>Data de Nascimento:</strong> ${data.data_nascimento || 'N/A'}</p>` : ''}
+                    ${!isCpf ? `<p><strong>Endereço:</strong> ${data.logradouro || ''}, ${data.numero || ''} - ${data.bairro || ''}, ${data.municipio || ''} - ${data.uf || ''}</p>` : ''}
+                    ${!isCpf ? `<p><strong>Atividade Principal:</strong> ${data.cnae_fiscal_descricao || 'N/A'}</p>` : ''}
+                `;
+
+                if (phoneNumbers || data.email) {
+                    detailsHtml += `<p style="margin-top: 8px;"><strong>Contato:</strong></p>`;
+                    if (phoneNumbers) detailsHtml += `<p>${phoneNumbers}</p>`;
+                    if (data.email) detailsHtml += `<p>${(data.email || '').toLowerCase()}</p>`;
+                }
+
+                detailsCard.innerHTML = detailsHtml;
+                container.appendChild(detailsCard);
+            },
+
+            toggleCnpjDetails(parentCard) {
+                const container = parentCard.querySelector('.cnpj-details-container');
+                const button = parentCard.querySelector('.cnpj-lookup-btn');
+                if (container.innerHTML !== '') {
+                    container.innerHTML = '';
+                    button.textContent = 'Consultar Documento';
+                    return false;
+                }
+                return true;
+            },
+
+            updateCardPaginationControls(totalItems, currentPage) {
+                const prevButton = document.getElementById('prevPage');
+                const nextButton = document.getElementById('nextPage');
+                const paginationInfo = document.getElementById('cardPaginationInfo');
+                const totalPages = Math.ceil(totalItems / this.CARDS_PER_PAGE);
+                const currentPageDisplay = totalPages > 0 ? currentPage + 1 : 0;
+
+                paginationInfo.innerText = `Página de Cards: ${currentPageDisplay} de ${totalPages}`;
+                prevButton.disabled = currentPage === 0 || totalPages === 0;
+                nextButton.disabled = currentPage >= totalPages - 1 || totalPages === 0;
+            }
+        };
+
+        /**
+         * Módulo Controller da Aplicação
+         * Gerencia o estado e orquestra os outros módulos.
+         */
+        const appController = {
+            allResultsData: [],
+            filteredResultsData: [],
+            currentCardPage: 0,
+            currentServiceType: '',
+
+            init() {
+                document.addEventListener('DOMContentLoaded', () => {
+                    uiService.updateCardPaginationControls(0, 0);
+                    const today = new Date();
+                    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                    
+                    // Inicializa todas as datas padrão
+                    document.getElementById('cont_dataFinal').valueAsDate = today;
+                    document.getElementById('cont_dataInicial').valueAsDate = firstDayOfMonth;
+                    document.getElementById('lic_dataFinal_lic').valueAsDate = today;
+                    document.getElementById('lic_dataInicial_lic').valueAsDate = firstDayOfMonth;
+                    document.getElementById('doc_dataFinal').valueAsDate = today;
+                    document.getElementById('doc_dataInicial').valueAsDate = firstDayOfMonth;
+                    document.getElementById('orgao_dataFinal').valueAsDate = today;
+                    document.getElementById('orgao_dataInicial').valueAsDate = firstDayOfMonth;
+
+                    document.getElementById('keywordSearch').addEventListener('input', this.filterResultsByKeyword.bind(this));
+                });
+            },
+
+            async consultarContratos() {
+                if (!this.validateInputs('cont_dataInicial', 'cont_dataFinal')) return;
+
+                uiService.clearError();
+                uiService.showLoading();
+                uiService.clearResults();
+                document.getElementById('keywordSearch').value = '';
+                document.getElementById('keywordResultCount').textContent = '';
+
+                const dataInicial = document.getElementById('cont_dataInicial').value.replace(/-/g, '');
+                const dataFinal = document.getElementById('cont_dataFinal').value.replace(/-/g, '');
+                const pagina = document.getElementById('cont_pagina').value;
+
+                const queryParams = `dataInicial=${dataInicial}&dataFinal=${dataFinal}&pagina=${pagina}`;
+
+                this.currentServiceType = 'contratos';
+                uiService.updateTitle(this.currentServiceType);
+
+                try {
+                    this.allResultsData = await apiService.fetchContratos(queryParams);
+                    this.filteredResultsData = this.allResultsData;
+                    this.currentCardPage = 0;
+                    uiService.renderResults(this.filteredResultsData, this.currentCardPage, this.currentServiceType, '');
+                    document.getElementById('exportCsvBtn').style.display = this.allResultsData.length > 0 ? 'inline-block' : 'none';
+                } catch (error) {
+                    uiService.showError(error.message);
+                } finally {
+                    uiService.hideLoading();
+                }
+            },
+
+            async consultarContratosPorOrgao() {
+                const cnpj = document.getElementById('orgao_cnpj').value.trim();
+                
+                if (!cnpj) {
+                    uiService.showError('⚠️ Por favor, informe o CNPJ do órgão.');
+                    return;
+                }
+
+                if (!this.validateInputs('orgao_dataInicial', 'orgao_dataFinal')) return;
+
+                uiService.clearError();
+                uiService.showLoading();
+                uiService.clearResults();
+                document.getElementById('keywordSearch').value = '';
+                document.getElementById('keywordResultCount').textContent = '';
+
+                const dataInicial = document.getElementById('orgao_dataInicial').value.replace(/-/g, '');
+                const dataFinal = document.getElementById('orgao_dataFinal').value.replace(/-/g, '');
+                const pagina = document.getElementById('orgao_pagina').value;
+
+                const queryParams = `dataInicial=${dataInicial}&dataFinal=${dataFinal}&pagina=${pagina}`;
+
+                this.currentServiceType = 'contratos';
+                uiService.updateTitle(this.currentServiceType);
+
+                try {
+                    this.allResultsData = await apiService.fetchContratosPorOrgao(cnpj, queryParams);
+                    this.filteredResultsData = this.allResultsData;
+                    this.currentCardPage = 0;
+                    uiService.renderResults(this.filteredResultsData, this.currentCardPage, this.currentServiceType, '');
+                    document.getElementById('exportCsvBtn').style.display = this.allResultsData.length > 0 ? 'inline-block' : 'none';
+                } catch (error) {
+                    uiService.showError(error.message);
+                } finally {
+                    uiService.hideLoading();
+                }
+            },
+
+            async consultarContratacoes() {
+                if (!this.validateInputs('lic_dataInicial_lic', 'lic_dataFinal_lic')) return;
+
+                uiService.clearError();
+                uiService.showLoading();
+                uiService.clearResults();
+                document.getElementById('keywordSearch').value = '';
+                document.getElementById('keywordResultCount').textContent = '';
+
+                const dataInicial = document.getElementById('lic_dataInicial_lic').value.replace(/-/g, '');
+                const dataFinal = document.getElementById('lic_dataFinal_lic').value.replace(/-/g, '');
+                const pagina = document.getElementById('lic_pagina').value;
+                const uf = document.getElementById('lic_uf').value.trim();
+                const modalidade = document.getElementById('lic_modalidade').value;
+                const cnpjOrgao = document.getElementById('lic_cnpj_orgao').value.trim();
+
+                let queryParams = `dataInicial=${dataInicial}&dataFinal=${dataFinal}&pagina=${pagina}`;
+                if (uf) queryParams += `&uf=${uf}`;
+                if (modalidade) queryParams += `&codigoModalidadeContratacao=${modalidade}`;
+                if (cnpjOrgao) queryParams += `&cnpjOrgao=${cnpjOrgao}`;
+
+                this.currentServiceType = 'licitacoes';
+                uiService.updateTitle(this.currentServiceType);
+
+                try {
+                    this.allResultsData = await apiService.fetchContratacoes(queryParams);
+                    this.filteredResultsData = this.allResultsData;
+                    this.currentCardPage = 0;
+                    uiService.renderResults(this.filteredResultsData, this.currentCardPage, this.currentServiceType, '');
+                    document.getElementById('exportCsvBtn').style.display = this.allResultsData.length > 0 ? 'inline-block' : 'none';
+                } catch (error) {
+                    uiService.showError(error.message);
+                } finally {
+                    uiService.hideLoading();
+                }
+            },
+
+            async consultarContratosPorDocumento() {
+                const documento = document.getElementById('doc_busca').value.trim();
+                
+                if (!documento) {
+                    uiService.showError('⚠️ Por favor, informe o CNPJ/CPF do fornecedor.');
+                    return;
+                }
+
+                if (!this.validateInputs('doc_dataInicial', 'doc_dataFinal')) return;
+
+                uiService.clearError();
+                uiService.showLoading();
+                uiService.clearResults();
+                document.getElementById('keywordSearch').value = '';
+                document.getElementById('keywordResultCount').textContent = '';
+
+                const dataInicial = document.getElementById('doc_dataInicial').value.replace(/-/g, '');
+                const dataFinal = document.getElementById('doc_dataFinal').value.replace(/-/g, '');
+                const pagina = document.getElementById('doc_pagina').value;
+
+                const queryParams = `dataInicial=${dataInicial}&dataFinal=${dataFinal}&pagina=${pagina}&niFornecedor=${documento}`;
+
+                this.currentServiceType = 'contratos';
+                uiService.updateTitle(this.currentServiceType);
+
+                try {
+                    this.allResultsData = await apiService.fetchContratosPorDocumento(queryParams);
+                    this.filteredResultsData = this.allResultsData;
+                    this.currentCardPage = 0;
+                    uiService.renderResults(this.filteredResultsData, this.currentCardPage, this.currentServiceType, '');
+                    document.getElementById('exportCsvBtn').style.display = this.allResultsData.length > 0 ? 'inline-block' : 'none';
+                    
+                    if (this.allResultsData.length === 0) {
+                        uiService.showError(`Nenhum contrato encontrado para o documento ${documento} no período selecionado.`);
+                    }
+                } catch (error) {
+                    uiService.showError(error.message);
+                } finally {
+                    uiService.hideLoading();
+                }
+            },
+
+            async handleCnpjLookup(cnpj, parentCard) {
+                const originalItem = JSON.parse(parentCard.dataset.originalItem);
+
+                const shouldFetch = uiService.toggleCnpjDetails(parentCard);
+                if (!shouldFetch) return;
+
+                const button = parentCard.querySelector('.cnpj-lookup-btn');
+                button.disabled = true;
+                button.textContent = 'Carregando...';
+
+                try {
+                    const cleanedDoc = String(cnpj).replace(/\D/g, '');
+                    let data;
+                    if (cleanedDoc.length === 11) {
+                        data = await apiService.fetchCpfData(cleanedDoc);
+                    } else if (cleanedDoc.length === 14) {
+                        data = await apiService.fetchCnpjData(cleanedDoc);
+                    } else {
+                        throw new Error(`Documento ${cleanedDoc} inválido.`);
+                    }
+                    uiService.renderCnpjDetailsCard(data, parentCard);
+                    button.textContent = 'Ocultar Dados';
+                } catch (error) {
+                    const container = parentCard.querySelector('.cnpj-details-container');
+                    container.innerHTML = `<div class="cnpj-details-card error">Falha ao buscar dados: ${error.message}</div>`;
+                    button.textContent = 'Tentar Novamente';
+                } finally {
+                    button.disabled = false;
+                }
+            },
+
+            changeCardPage(direction) {
+                this.currentCardPage += direction;
+                const keyword = document.getElementById('keywordSearch').value;
+                uiService.renderResults(this.filteredResultsData, this.currentCardPage, this.currentServiceType, keyword);
+                window.scrollTo({ top: document.getElementById('resultCards').offsetTop - 100, behavior: 'smooth' });
+            },
+
+            filterResultsByKeyword() {
+                const keyword = document.getElementById('keywordSearch').value;
+                const lowerCaseKeyword = keyword.toLowerCase();
+                
+                if (!lowerCaseKeyword) {
+                    this.filteredResultsData = this.allResultsData;
+                    document.getElementById('keywordResultCount').textContent = '';
+                } else {
+                    this.filteredResultsData = this.allResultsData.filter(item => {
+                        const object = (item.objetoContrato || item.objetoCompra || '').toLowerCase();
+                        const supplierName = (item.nomeRazaoSocialFornecedor || '').toLowerCase();
+                        const supplierId = (item.niFornecedor || '').toLowerCase();
+                        const entityName = (item.orgaoEntidade?.razaoSocial || '').toLowerCase();
+                        const unitName = (item.unidadeOrgao?.nomeUnidade || '').toLowerCase();
+                        const unitCity = (item.unidadeOrgao?.municipioNome || '').toLowerCase();
+                        const unitState = (item.unidadeOrgao?.ufSigla || '').toLowerCase();
+
+                        return object.includes(lowerCaseKeyword) ||
+                               supplierName.includes(lowerCaseKeyword) || 
+                               supplierId.includes(lowerCaseKeyword) ||
+                               entityName.includes(lowerCaseKeyword) ||
+                               unitName.includes(lowerCaseKeyword) ||
+                               unitCity.includes(lowerCaseKeyword) ||
+                               unitState.includes(lowerCaseKeyword);
+                    });
+                    document.getElementById('keywordResultCount').textContent = `✓ ${this.filteredResultsData.length} resultado(s) encontrado(s).`;
+                }
+
+                this.currentCardPage = 0;
+                uiService.renderResults(this.filteredResultsData, this.currentCardPage, this.currentServiceType, keyword);
+            },
+
+            validateInputs(startDateId, endDateId) {
+                const startDate = document.getElementById(startDateId).value;
+                const endDate = document.getElementById(endDateId).value;
+
+                if (!startDate || !endDate) {
+                    uiService.showError('⚠️ Por favor, preencha as datas inicial e final.');
+                    return false;
+                }
+
+                if (new Date(startDate) > new Date(endDate)) {
+                    uiService.showError('⚠️ A data inicial não pode ser posterior à data final.');
+                    return false;
+                }
+
+                return true;
+            },
+
+            exportResultsToCsv() {
+                if (!this.filteredResultsData || this.filteredResultsData.length === 0) {
+                    alert('Não há dados para exportar.');
+                    return;
+                }
+
+                let headers, rows;
+                if (this.currentServiceType === 'contratos') {
+                    headers = ['PNCP ID', 'Objeto', 'Valor Global', 'Fornecedor', 'Documento Fornecedor', 'Órgão', 'CNPJ Órgão', 'Unidade Administrativa', 'Vigência Início', 'Vigência Fim', 'Tipo Contrato'];
+                    rows = this.filteredResultsData.map(item => [
+                        item.numeroControlePNCP,
+                        item.objetoContrato,
+                        item.valorGlobal,
+                        item.nomeRazaoSocialFornecedor,
+                        item.niFornecedor,
+                        item.orgaoEntidade?.razaoSocial,
+                        item.orgaoEntidade?.cnpj,
+                        item.unidadeOrgao?.nomeUnidade,
+                        item.dataVigenciaInicio ? new Date(item.dataVigenciaInicio).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : '',
+                        item.dataVigenciaFim ? new Date(item.dataVigenciaFim).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : '',
+                        item.tipoContrato?.nome
+                    ]);
+                } else { // licitacoes
+                    headers = ['PNCP ID', 'Objeto', 'Valor Estimado', 'Órgão', 'CNPJ Órgão', 'Unidade Administrativa', 'Modalidade', 'Data Publicação'];
+                    rows = this.filteredResultsData.map(item => [
+                        item.numeroControlePNCP,
+                        item.objetoCompra,
+                        item.valorTotalEstimado,
+                        item.orgaoEntidade?.razaoSocial,
+                        item.orgaoEntidade?.cnpj,
+                        item.unidadeOrgao?.nomeUnidade,
+                        item.modalidadeNome,
+                        item.dataPublicacaoPncp ? new Date(item.dataPublicacaoPncp).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : ''
+                    ]);
+                }
+
+                const csvContent = [
+                    headers.join(';'),
+                    ...rows.map(row => row.map(cell => `"${cell || ''}"`).join(';'))
+                ].join('\n');
+
+                const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `pncp_${this.currentServiceType}_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Funções globais para uso inline no HTML
+        function consultarContratos() {
+            appController.consultarContratos();
+        }
+
+        function consultarContratacoes() {
+            appController.consultarContratacoes();
+        }
+
+        function consultarContratosPorDocumento() {
+            appController.consultarContratosPorDocumento();
+        }
+
+        function consultarContratosPorOrgao() {
+            appController.consultarContratosPorOrgao();
+        }
+
+        function changeCardPage(direction) {
+            appController.changeCardPage(direction);
+        }
+
+        function exportToCsv() {
+            appController.exportResultsToCsv();
+        }
+
+        // Inicializar a aplicação
+        appController.init();
+    </script>
+</body>
+</html>

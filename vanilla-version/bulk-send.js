@@ -47,11 +47,31 @@ class BulkSendManager {
         this.fileUploadArea = document.getElementById('fileUploadArea');
         this.bulkMessageText = document.getElementById('bulkMessageText');
         this.bulkFileInput = document.getElementById('bulkFileInput');
+    // Wizard Step 3 - Templates/Email
+    this.bulkTemplateRow = document.getElementById('bulkTemplateRow');
+    this.bulkTemplateSelect = document.getElementById('bulkTemplateSelect');
+    this.applyBulkTemplateBtn = document.getElementById('applyBulkTemplateBtn');
+    this.bulkEmailSubjectRow = document.getElementById('bulkEmailSubjectRow');
+    this.bulkEmailSubject = document.getElementById('bulkEmailSubject');
+    this.bulkEmailAttachmentRow = document.getElementById('bulkEmailAttachmentRow');
+    this.bulkEmailAttachments = document.getElementById('bulkEmailAttachments');
         
         // Modais de envio rápido
         this.quickWhatsAppModal = document.getElementById('quickWhatsAppModal');
         this.quickEmailModal = document.getElementById('quickEmailModal');
         this.quickDocumentModal = document.getElementById('quickDocumentModal');
+
+    // Campos dos modais rápidos - WhatsApp
+    this.quickWhatsAppTemplateSelect = document.getElementById('quickWhatsAppTemplate');
+    this.applyWhatsAppTemplateBtn = document.getElementById('applyWhatsAppTemplate');
+    this.quickWhatsAppMessage = document.getElementById('quickWhatsAppMessage');
+
+    // Campos dos modais rápidos - Email
+    this.quickEmailTemplateSelect = document.getElementById('quickEmailTemplate');
+    this.applyEmailTemplateBtn = document.getElementById('applyEmailTemplate');
+    this.quickEmailSubject = document.getElementById('quickEmailSubject');
+    this.quickEmailMessage = document.getElementById('quickEmailMessage');
+    this.quickEmailAttachment = document.getElementById('quickEmailAttachment');
         
         // Botões de fechar dos modais rápidos
         this.closeWhatsAppModal = document.getElementById('closeWhatsAppModal');
@@ -117,6 +137,11 @@ class BulkSendManager {
         
         // Modais de envio rápido
         this.attachQuickSendListeners();
+
+        // Wizard - aplicar template
+        if (this.applyBulkTemplateBtn) {
+            this.applyBulkTemplateBtn.addEventListener('click', () => this.applyTemplate('wizard'));
+        }
     }
 
     attachQuickSendListeners() {
@@ -130,6 +155,9 @@ class BulkSendManager {
         if (this.confirmWhatsAppSend) {
             this.confirmWhatsAppSend.addEventListener('click', () => this.sendQuickWhatsApp());
         }
+        if (this.applyWhatsAppTemplateBtn) {
+            this.applyWhatsAppTemplateBtn.addEventListener('click', () => this.applyTemplate('whatsapp'));
+        }
         
         // E-mail
         if (this.closeEmailModal) {
@@ -140,6 +168,9 @@ class BulkSendManager {
         }
         if (this.confirmEmailSend) {
             this.confirmEmailSend.addEventListener('click', () => this.sendQuickEmail());
+        }
+        if (this.applyEmailTemplateBtn) {
+            this.applyEmailTemplateBtn.addEventListener('click', () => this.applyTemplate('email'));
         }
         
         // Documento
@@ -356,6 +387,13 @@ class BulkSendManager {
         // Mostrar área apropriada
         this.messageInputArea.style.display = (this.sendType === 'whatsapp' || this.sendType === 'email') ? 'block' : 'none';
         this.fileUploadArea.style.display = this.sendType === 'document' ? 'block' : 'none';
+
+        // Wizard templates e campos extras
+        const isMsg = (this.sendType === 'whatsapp' || this.sendType === 'email');
+        if (this.bulkTemplateRow) this.bulkTemplateRow.style.display = isMsg ? 'flex' : 'none';
+        if (this.bulkEmailSubjectRow) this.bulkEmailSubjectRow.style.display = (this.sendType === 'email') ? 'block' : 'none';
+        if (this.bulkEmailAttachmentRow) this.bulkEmailAttachmentRow.style.display = (this.sendType === 'email') ? 'block' : 'none';
+        if (isMsg) this.populateTemplateSelect(this.sendType, true);
     }
 
     executeBulkSend() {
@@ -369,9 +407,9 @@ class BulkSendManager {
             file: this.bulkFileInput?.files[0] || null
         };
         
-        console.log('Enviando em massa:', data);
-        
-        this.showToast(`Envio iniciado para ${selectedContacts.length} contatos via ${this.sendType}`, 'success');
+        console.log('Envio em massa (simulado):', data);
+        const label = this.sendType === 'email' ? 'E-mail' : this.sendType === 'whatsapp' ? 'WhatsApp' : 'Documento';
+        this.showToast(`Envio em massa (simulado) para ${selectedContacts.length} contatos via ${label}`, 'success');
         this.closeBulkModal();
     }
 
@@ -379,7 +417,8 @@ class BulkSendManager {
     openQuickWhatsApp(client) {
         this.currentClient = client;
         document.getElementById('whatsappClientName').textContent = client.nome || client.name;
-        document.getElementById('quickWhatsAppMessage').value = '';
+        this.quickWhatsAppMessage.value = '';
+        this.populateTemplateSelect('whatsapp');
         this.quickWhatsAppModal.classList.add('active');
         lucide.createIcons();
     }
@@ -387,8 +426,10 @@ class BulkSendManager {
     openQuickEmail(client) {
         this.currentClient = client;
         document.getElementById('emailClientName').textContent = client.nome || client.name;
-        document.getElementById('quickEmailSubject').value = '';
-        document.getElementById('quickEmailMessage').value = '';
+        this.quickEmailSubject.value = '';
+        this.quickEmailMessage.value = '';
+        if (this.quickEmailAttachment) this.quickEmailAttachment.value = '';
+        this.populateTemplateSelect('email');
         this.quickEmailModal.classList.add('active');
         lucide.createIcons();
     }
@@ -413,7 +454,7 @@ class BulkSendManager {
     }
 
     sendQuickWhatsApp() {
-        const message = document.getElementById('quickWhatsAppMessage').value;
+        const message = this.quickWhatsAppMessage.value;
         if (!message.trim()) {
             this.showToast('Digite uma mensagem', 'warning');
             return;
@@ -425,17 +466,29 @@ class BulkSendManager {
     }
 
     sendQuickEmail() {
-        const subject = document.getElementById('quickEmailSubject').value;
-        const message = document.getElementById('quickEmailMessage').value;
+        const subject = this.quickEmailSubject.value;
+        const message = this.quickEmailMessage.value;
         
         if (!subject.trim() || !message.trim()) {
             this.showToast('Preencha assunto e mensagem', 'warning');
             return;
         }
-        
-        console.log('Enviando E-mail para:', this.currentClient, 'Assunto:', subject, 'Mensagem:', message);
-        this.showToast(`E-mail enviado para ${this.currentClient.nome || this.currentClient.name}`, 'success');
-        this.closeQuickModal('email');
+        if (!this.currentClient?.email) {
+            this.showToast('Este cliente não possui e-mail cadastrado', 'warning');
+            return;
+        }
+
+        const files = Array.from(this.quickEmailAttachment?.files || []);
+        const to = this.currentClient.email;
+        window.sendEmail({ to, subject, html: message, attachments: files })
+            .then(() => {
+                this.showToast(`E-mail enviado para ${this.currentClient.nome || this.currentClient.name}`, 'success');
+                this.closeQuickModal('email');
+            })
+            .catch((err) => {
+                console.error('Erro ao enviar e-mail:', err);
+                this.showToast(`Erro ao enviar e-mail: ${err.message}`, 'error');
+            });
     }
 
     sendQuickDocument() {
@@ -459,6 +512,63 @@ class BulkSendManager {
             window.clientManager.showToast(message, type);
         } else {
             console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+    }
+
+    // ===== TEMPLATES =====
+    populateTemplateSelect(channel, isWizard = false) {
+        const templates = (window.messageTemplates && window.messageTemplates[channel]) || [];
+        const select = isWizard ? this.bulkTemplateSelect : (channel === 'whatsapp' ? this.quickWhatsAppTemplateSelect : this.quickEmailTemplateSelect);
+        if (!select) return;
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Selecione um modelo...';
+        select.appendChild(placeholder);
+        templates.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = t.name;
+            select.appendChild(opt);
+        });
+        select.selectedIndex = 0;
+    }
+
+    applyTemplate(channel) {
+        let select;
+        if (channel === 'wizard') {
+            select = this.bulkTemplateSelect;
+        } else {
+            select = channel === 'whatsapp' ? this.quickWhatsAppTemplateSelect : this.quickEmailTemplateSelect;
+        }
+    if (!select) return;
+        const templateId = select.value;
+        if (!templateId) {
+            this.showToast('Selecione um modelo primeiro', 'warning');
+            return;
+        }
+        const effectiveChannel = channel === 'wizard' ? this.sendType : channel;
+        const list = (window.messageTemplates && window.messageTemplates[effectiveChannel]) || [];
+        const tpl = list.find(t => t.id === templateId);
+        if (!tpl) return;
+        // Para wizard (múltiplos), não personaliza por nome.
+        const replaceVars = (str) => (str || '').replace(/\{\{\s*nome\s*\}\}/gi, '');
+        if (channel === 'wizard') {
+            if (this.sendType === 'whatsapp') {
+                this.bulkMessageText.value = replaceVars(tpl.text || '');
+            } else if (this.sendType === 'email') {
+                this.bulkEmailSubject.value = replaceVars(tpl.subject || '');
+                this.bulkMessageText.value = replaceVars(tpl.html || tpl.text || '');
+            }
+        } else if (channel === 'whatsapp') {
+            const name = this.currentClient?.nome || this.currentClient?.name || '';
+            const replaceOne = (s) => (s || '').replace(/\{\{\s*nome\s*\}\}/gi, name);
+            this.quickWhatsAppMessage.value = replaceOne(tpl.text || '');
+        } else if (channel === 'email') {
+            const name = this.currentClient?.nome || this.currentClient?.name || '';
+            const replaceOne = (s) => (s || '').replace(/\{\{\s*nome\s*\}\}/gi, name);
+            this.quickEmailSubject.value = replaceOne(tpl.subject || '');
+            this.quickEmailMessage.value = replaceOne(tpl.html || tpl.text || '');
         }
     }
 }

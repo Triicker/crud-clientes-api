@@ -34,6 +34,14 @@ app.use((req, res, next) => {
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'vanilla-version')));
 
+// Exponibiliza a ferramenta de pesquisa de contratos em /SearchContratos
+app.use('/SearchContratos', express.static(path.join(__dirname, 'SearchContratos')));
+
+// Atalho direto para /search.html para manter a navegação independente
+app.get('/search.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'SearchContratos', 'search.html'));
+});
+
 // Rota raiz redireciona para login
 app.get('/', (req, res) => {
   res.redirect('/login.html');
@@ -75,6 +83,10 @@ app.use('/api/usuarios', usuariosRoutes);
 
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
+
+// E-mail
+const emailRoutes = require('./routes/email');
+app.use('/api/email', emailRoutes);
 
 
 // Inicia o servidor

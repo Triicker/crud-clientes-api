@@ -7,7 +7,20 @@
  */
 const clientTypes = {
     school: 'Escola',
-    network: 'Rede de Ensino'
+    network: 'Rede de Ensino',
+    public: 'Escola Pública',
+    university: 'Universidade',
+    course: 'Curso Técnico'
+};
+
+// Mapa de colunas visuais (header) -> campos reais no objeto cliente
+const columnFieldMap = {
+    name: 'nome',
+    type: 'tipo',
+    phone: 'telefone',
+    cnpj: 'cnpj',
+    city: 'cidade',
+    state: 'uf'
 };
 
 class ClientManager {
@@ -399,6 +412,13 @@ class ClientManager {
             tempClients = tempClients.filter(client => client.tipo === this.typeFilter);
             console.log('🏷️ Após filtro de tipo:', tempClients.length, 'clientes');
         }
+        if (this.microregionFilter) {
+            tempClients = tempClients.filter(client => {
+                const mic = client.microrregiao || client.microregiao || client.microregion || client.microRegion || '';
+                return mic === this.microregionFilter;
+            });
+            console.log('🧭 Após filtro de microrregião:', tempClients.length, 'clientes');
+        }
         this.filteredClients = tempClients;
         console.log('✅ Clientes filtrados finais:', this.filteredClients.length);
         this.renderTable();
@@ -434,10 +454,11 @@ class ClientManager {
      * Manipula a ordenação da tabela
      */
     handleSort(column) {
-        if (this.sortColumn === column) {
+        const realColumn = columnFieldMap[column] || column;
+        if (this.sortColumn === realColumn) {
             this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
-            this.sortColumn = column;
+            this.sortColumn = realColumn;
             this.sortDirection = 'asc';
         }
         this.sortClients();
@@ -469,7 +490,8 @@ class ClientManager {
         document.querySelectorAll('.sort-button').forEach(button => {
             const icon = button.querySelector('i');
             button.classList.remove('active');
-            if (button.dataset.column === this.sortColumn) {
+            const real = columnFieldMap[button.dataset.column] || button.dataset.column;
+            if (real === this.sortColumn) {
                 button.classList.add('active');
                 icon.setAttribute('data-lucide', this.sortDirection === 'asc' ? 'chevron-up' : 'chevron-down');
             } else {

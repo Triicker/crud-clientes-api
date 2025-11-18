@@ -44,7 +44,6 @@ class ApiClient {
             
             const response = await fetch(url, config);
             const data = await response.json();
-
             if (!response.ok) {
                 throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
             }
@@ -100,6 +99,27 @@ class ApiClient {
         return this.request(endpoint, {
             method: 'DELETE'
         });
+    }
+
+    /**
+     * Upload multipart/form-data (por exemplo, envio de e-mail com anexos)
+     * Não define Content-Type manualmente para permitir que o navegador gere o boundary corretamente.
+     */
+    async upload(endpoint, formData, options = {}) {
+        const url = `${this.baseURL}${endpoint}`;
+        const token = window.authManager.getToken();
+        const headers = { ...(options.headers || {}) };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const config = { method: options.method || 'POST', headers, body: formData };
+        console.log(`🌐 API Upload: ${config.method} ${url}`);
+        const response = await fetch(url, config);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const msg = data.error || data.message || `HTTP ${response.status}: ${response.statusText}`;
+            throw new Error(msg);
+        }
+        return data;
     }
 }
 
@@ -655,3 +675,23 @@ window.generateReport = generateReport;
 window.checkReportStatus = checkReportStatus;
 window.downloadReport = downloadReport;
 window.fetchReportsHistory = fetchReportsHistory;
+
+/**
+ * ============================================================================ 
+ * FUNÇÕES DE E-MAIL
+ * ============================================================================ 
+ */
+
+async function sendEmail({ to, subject, html, text, attachments = [] }) {
+    const formData = new FormData();
+    if (Array.isArray(to)) formData.append('to', to.join(',')); else formData.append('to', to);
+    if (subject) formData.append('subject', subject);
+    if (html) formData.append('html', html);
+    if (!html && text) formData.append('text', text);
+    attachments.forEach((file) => {
+        if (file) formData.append('attachments', file, file.name);
+    });
+    return apiClient.upload('/email/send', formData, { method: 'POST' });
+}
+
+window.sendEmail = sendEmail;

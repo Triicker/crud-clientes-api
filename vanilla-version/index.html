@@ -123,10 +123,16 @@
                     <span id="resultsCount">Carregando...</span>
                     <span id="totalCount"></span>
                 </div>
-                <button id="addClientButton" class="btn-add-client">
-                    <i data-lucide="plus-circle"></i>
-                    <span>Incluir Cliente</span>
-                </button>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button id="searchContractsButton" class="btn-add-client" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i data-lucide="search"></i>
+                        <span>Pesquisar Contratos</span>
+                    </button>
+                    <button id="addClientButton" class="btn-add-client">
+                        <i data-lucide="plus-circle"></i>
+                        <span>Incluir Cliente</span>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -584,9 +590,25 @@
                     </div>
 
                     <!-- Área de mensagem (WhatsApp/Email) -->
+                    <div id="bulkTemplateRow" style="display:none; margin: 1rem 0; display:flex; gap:.5rem; align-items:center;">
+                        <label style="font-weight:600;">Modelo:</label>
+                        <select id="bulkTemplateSelect" style="flex:1; padding:0.5rem; border:1px solid #e5e7eb; border-radius:8px;"></select>
+                        <button id="applyBulkTemplateBtn" class="wizard-btn" style="gap:.5rem;">
+                            <i data-lucide="wand-2" style="width:18px;height:18px;"></i>
+                            Aplicar
+                        </button>
+                    </div>
                     <div id="messageInputArea" class="message-input-area" style="display: none;">
+                        <div id="bulkEmailSubjectRow" style="display:none; margin-bottom: 0.75rem;">
+                            <label for="bulkEmailSubject" style="display:block; font-weight: 600; margin-bottom: 0.5rem;">Assunto (e-mail):</label>
+                            <input type="text" id="bulkEmailSubject" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;" placeholder="Assunto do e-mail">
+                        </div>
                         <label for="bulkMessageText">Mensagem:</label>
                         <textarea id="bulkMessageText" placeholder="Digite sua mensagem aqui..."></textarea>
+                        <div id="bulkEmailAttachmentRow" style="display:none; margin-top: 0.75rem;">
+                            <label style="display:block; font-weight: 600; margin-bottom: 0.5rem;">Anexos (opcional):</label>
+                            <input type="file" id="bulkEmailAttachments" multiple>
+                        </div>
                     </div>
 
                     <!-- Área de upload (Documento) -->
@@ -634,6 +656,11 @@
                 </button>
             </div>
             <div class="quick-send-body">
+                <div style="margin-bottom: 1rem; display:flex; gap:.5rem; align-items:center;">
+                    <label style="font-weight:600;">Modelo:</label>
+                    <select id="quickWhatsAppTemplate" style="flex:1; padding:0.5rem; border:1px solid #e5e7eb; border-radius:8px;"></select>
+                    <button id="applyWhatsAppTemplate" class="quick-send-btn" style="background:#eef2ff; color:#374151;">Aplicar</button>
+                </div>
                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Mensagem:</label>
                 <textarea id="quickWhatsAppMessage" style="width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; font-family: inherit;" placeholder="Digite sua mensagem..."></textarea>
             </div>
@@ -664,6 +691,11 @@
                 </button>
             </div>
             <div class="quick-send-body">
+                <div style="margin-bottom: 1rem; display:flex; gap:.5rem; align-items:center;">
+                    <label style="font-weight:600;">Modelo:</label>
+                    <select id="quickEmailTemplate" style="flex:1; padding:0.5rem; border:1px solid #e5e7eb; border-radius:8px;"></select>
+                    <button id="applyEmailTemplate" class="quick-send-btn" style="background:#eef2ff; color:#374151;">Aplicar</button>
+                </div>
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Assunto:</label>
                     <input type="text" id="quickEmailSubject" style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;" placeholder="Assunto do e-mail">
@@ -671,6 +703,10 @@
                 <div>
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Mensagem:</label>
                     <textarea id="quickEmailMessage" style="width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; font-family: inherit;" placeholder="Digite sua mensagem..."></textarea>
+                </div>
+                <div style="margin-top:1rem;">
+                    <label style="display:block; font-weight: 600; margin-bottom: 0.5rem;">Anexo (opcional):</label>
+                    <input type="file" id="quickEmailAttachment" multiple>
                 </div>
             </div>
             <div class="quick-send-footer">
@@ -735,9 +771,16 @@
     <script src="auth-manager.js"></script>
     <script src="ibge-api.js"></script>
     <script src="api-client.js"></script>
+    <script src="templates.js"></script>
     <script src="app-manager.js"></script>
     <script src="edit-modal.js"></script>
     <script src="bulk-send.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Navegação para Pesquisar Contratos
+        document.getElementById('searchContractsButton')?.addEventListener('click', () => {
+            window.location.href = 'search.html';
+        });
+    </script>
 </body>
 </html>
