@@ -38,8 +38,8 @@ app.use(express.static(path.join(__dirname, 'vanilla-version')));
 // Serve os arquivos estáticos do build do Vite na rota /gemini-search
 app.use('/gemini-search', express.static(path.join(__dirname, 'Teste-lista', 'dist')));
 
-// Rota fallback para SPA React (Teste-lista) - deve vir antes de outras rotas catch-all
-app.get('/gemini-search/*', (req, res) => {
+// Rota fallback para SPA React (Express 5 usa path-to-regexp v6: usar :path(*) em vez de '*')
+app.get('/gemini-search/:path(*)', (req, res) => {
   res.sendFile(path.join(__dirname, 'Teste-lista', 'dist', 'index.html'));
 });
 
