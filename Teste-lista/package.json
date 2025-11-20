@@ -1,0 +1,27 @@
+{
+  "name": "buscador-contatos-cnpjs",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Uma aplicação que utiliza a API do Gemini para gerar listas de CNPJs de órgãos públicos e mapear contatos (leads) em diversas entidades, como escolas, prefeituras e empresas.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "dependencies": {
+    "@google/genai": "^1.30.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "firebase": "^12.6.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1"
+  }
+}

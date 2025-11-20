@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "build": "cd Teste-lista && npm install && npm run build",
     "test": "playwright test",
     "test:filters": "playwright test tests/search-filters.spec.js",
     "test:headed": "playwright test --headed"

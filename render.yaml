@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: crud-clientes-api
+    env: node
+    buildCommand: cd Teste-lista && npm install && npm run build && cd ..
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: etica_vendas
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SSL
+        value: true
+      - key: RENDER
+        value: true

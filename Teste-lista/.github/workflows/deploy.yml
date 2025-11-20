@@ -1,0 +1,75 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Baixa o código como tarball da branch main (sem usar git)
+      - name: Download repository tarball
+        shell: bash
+        run: |
+          set -euxo pipefail
+          for i in {1..5}; do
+            echo "Attempt $i: downloading repository tarball..."
+            curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L \
+              -o source.tar.gz \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/main" \
+              && break || sleep $((i*10))
+          done
+          mkdir source
+          tar -xzf source.tar.gz -C source --strip-components=1
+          ls -la source
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # Removido cache para não mostrar aviso de lockfile ausente
+          # cache: npm
+
+      - name: Install dependencies
+        working-directory: source
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build
+        working-directory: source
+        run: npm run build
+
+      - name: Add 404.html (SPA fallback)
+        working-directory: source
+        run: cp dist/index.html dist/404.html || true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: source/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

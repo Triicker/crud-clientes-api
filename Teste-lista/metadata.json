@@ -1,0 +1,5 @@
+{
+  "name": "Buscador de Contatos e CNPJs de Órgãos Públicos",
+  "description": "Uma aplicação que utiliza a API do Gemini para gerar listas de CNPJs de órgãos públicos e mapear contatos (leads) em diversas entidades, como escolas, prefeituras e empresas.",
+  "requestFramePermissions": []
+}

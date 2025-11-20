@@ -32,10 +32,14 @@ exports.createCliente = async (req, res) => {
 
     const result = await pool.query(query, values);
 
-    // ... (restante do código)
+    res.status(201).json(result.rows[0]);
   } catch (error) {
-    // Resposta de erro (código 500: Internal Server Error)
     console.error('Erro ao criar cliente:', error);
+    
+    if (error.code === '23505') {
+        return res.status(409).json({ erro: 'Cliente já cadastrado com este CNPJ.' });
+    }
+
     res.status(500).json({ erro: 'Erro interno do servidor ao criar cliente.' });
   }
 };

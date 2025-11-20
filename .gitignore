@@ -1,2 +1,7 @@
 node_modules
 .env
+Teste-lista/node_modules
+Teste-lista/.env
+test-results/
+playwright-report/
+*.log

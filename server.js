@@ -34,6 +34,15 @@ app.use((req, res, next) => {
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'vanilla-version')));
 
+// Integração da aplicação React (Teste-lista)
+// Serve os arquivos estáticos do build do Vite na rota /gemini-search
+app.use('/gemini-search', express.static(path.join(__dirname, 'Teste-lista', 'dist')));
+
+// Rota fallback para SPA React (Teste-lista) - deve vir antes de outras rotas catch-all
+app.get('/gemini-search/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Teste-lista', 'dist', 'index.html'));
+});
+
 // Exponibiliza a ferramenta de pesquisa de contratos em /SearchContratos
 app.use('/SearchContratos', express.static(path.join(__dirname, 'SearchContratos')));
 
