@@ -38,9 +38,14 @@ app.use(express.static(path.join(__dirname, 'vanilla-version')));
 // Serve os arquivos estáticos do build do Vite na rota /gemini-search
 app.use('/gemini-search', express.static(path.join(__dirname, 'Teste-lista', 'dist')));
 
-// Rota fallback para SPA React (Express 5 usa path-to-regexp v6: usar :path(*) em vez de '*')
-app.get('/gemini-search/:path(*)', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Teste-lista', 'dist', 'index.html'));
+// Rota fallback para SPA React - middleware manual para evitar problemas com path-to-regexp
+app.use('/gemini-search', (req, res, next) => {
+  // Se o arquivo estático não foi encontrado, serve o index.html para SPA routing
+  if (!req.path.match(/\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot)$/)) {
+    res.sendFile(path.join(__dirname, 'Teste-lista', 'dist', 'index.html'));
+  } else {
+    next();
+  }
 });
 
 // Exponibiliza a ferramenta de pesquisa de contratos em /SearchContratos
