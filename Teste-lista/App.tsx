@@ -8,6 +8,7 @@ import ErrorMessage from './components/ErrorMessage';
 import DetailsModal from './components/DetailsModal';
 import ApproachModal from './components/ApproachModal';
 import { exportToCsv } from './utils/export';
+import { FunilVendas } from './pages/FunilVendas';
 
 // Interfaces for IBGE API data
 interface EstadoAPI {
@@ -42,6 +43,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [searchMode, setSearchMode] = useState<SearchMode>('cnpj');
+  const [currentView, setCurrentView] = useState<'search' | 'funnel'>('search');
 
   // State for pagination
   const [visibleResultsCount, setVisibleResultsCount] = useState<number>(ITEMS_PER_PAGE);
@@ -299,7 +301,19 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen font-sans text-slate-800 bg-[#f6f8fc] py-8 md:py-12">
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8 flex justify-center space-x-4">
+        <button onClick={() => setCurrentView('search')} className={`px-6 py-2 rounded-full font-semibold transition-colors ${currentView === 'search' ? 'bg-[#764ba2] text-white shadow-lg' : 'bg-white text-slate-600 hover:bg-slate-100'}`}>
+          Busca Inteligente
+        </button>
+        <button onClick={() => setCurrentView('funnel')} className={`px-6 py-2 rounded-full font-semibold transition-colors ${currentView === 'funnel' ? 'bg-[#764ba2] text-white shadow-lg' : 'bg-white text-slate-600 hover:bg-slate-100'}`}>
+          Funil de Vendas
+        </button>
+      </nav>
+
+      {currentView === 'funnel' ? (
+        <FunilVendas />
+      ) : (
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1200px] mx-auto bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] p-8 sm:p-12">
           <div className="mb-6">
             <a href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300" title="Voltar para Clientes">
@@ -392,6 +406,7 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
+      )}
       {isModalOpen && selectedEntity && (
         <DetailsModal 
             isOpen={isModalOpen}

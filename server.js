@@ -98,6 +98,9 @@ app.use('/api/usuarios', usuariosRoutes);
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+const interacoesRoutes = require('./routes/interacoes');
+app.use('/api/interacoes', interacoesRoutes);
+
 // E-mail
 const emailRoutes = require('./routes/email');
 app.use('/api/email', emailRoutes);

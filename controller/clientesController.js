@@ -13,20 +13,20 @@ exports.createCliente = async (req, res) => {
   console.log('📥 Recebido POST /api/clientes');
   console.log('📦 req.body:', JSON.stringify(req.body, null, 2));
   
-  const { nome, tipo, cnpj, cidade, uf, telefone, observacoes } = req.body;
+  const { nome, tipo, cnpj, cidade, uf, telefone, observacoes, status, vendedor_responsavel } = req.body;
 
-  console.log('📋 Dados extraídos:', { nome, tipo, cnpj, cidade, uf, telefone, observacoes });
+  console.log('📋 Dados extraídos:', { nome, tipo, cnpj, cidade, uf, telefone, observacoes, status, vendedor_responsavel });
 
   try {
     const query = `
-      INSERT INTO clientes (nome, tipo, cnpj, cidade, uf, telefone, observacoes)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO clientes (nome, tipo, cnpj, cidade, uf, telefone, observacoes, status, vendedor_responsavel)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *;
     `; 
     // Movi o comentário para FORA da string SQL (agora é um comentário de JS)
     // 'RETURNING *' devolve o registo inserido.
     
-    const values = [nome, tipo, cnpj, cidade, uf, telefone, observacoes];
+    const values = [nome, tipo, cnpj, cidade, uf, telefone, observacoes, status || 'Prospecção', vendedor_responsavel];
     
     console.log('💾 Executando INSERT com valores:', values);
 
@@ -187,16 +187,16 @@ exports.getClienteRelatorio = async (req, res) => {
 // 4. UPDATE (Atualizar um cliente)
 exports.updateCliente = async (req, res) => {
   const { id } = req.params;
-  const { nome, tipo, cnpj, cidade, uf, telefone, observacoes } = req.body;
+  const { nome, tipo, cnpj, cidade, uf, telefone, observacoes, status, vendedor_responsavel } = req.body;
 
   try {
     const query = `
       UPDATE clientes
-      SET nome = $1, tipo = $2, cnpj = $3, cidade = $4, uf = $5, telefone = $6, observacoes = $7
-      WHERE id = $8
+      SET nome = $1, tipo = $2, cnpj = $3, cidade = $4, uf = $5, telefone = $6, observacoes = $7, status = $8, vendedor_responsavel = $9
+      WHERE id = $10
       RETURNING *;
     `;
-    const values = [nome, tipo, cnpj, cidade, uf, telefone, observacoes, id];
+    const values = [nome, tipo, cnpj, cidade, uf, telefone, observacoes, status, vendedor_responsavel, id];
 
     const result = await pool.query(query, values);
 
