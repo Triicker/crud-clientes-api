@@ -72,7 +72,7 @@ async function generateWithRetry(ai: GoogleGenAI, prompt: string, schema?: any) 
 
 const CACHE_VERSION = 'v2'; // Versão do cache - incrementar quando mudar estrutura de dados
 
-export async function fetchCnpjs(apiKey: string, estado: string, tipoOrgao: string): Promise<CnpjResult[]> {
+export async function fetchCnpjs(apiKey: string, estado: string, tipoOrgao: string): Promise<LeadResult[]> {
   const cacheKey = generateCacheKey('cnpj', CACHE_VERSION, estado, tipoOrgao);
   const docRef = doc(db, "cnpj_searches", cacheKey);
 
@@ -81,9 +81,9 @@ export async function fetchCnpjs(apiKey: string, estado: string, tipoOrgao: stri
     if (docSnap.exists()) {
       const cachedData = docSnap.data();
       // Verificar se o cache tem a estrutura nova (com potencialCompra)
-      if (cachedData.result && cachedData.result[0] && 'potencialCompra' in cachedData.result[0]) {
+      if (cachedData.result && cachedData.result[0] && 'entidade' in cachedData.result[0]) {
         console.log("✅ Dados enriquecidos recuperados do Cache (Firebase)!");
-        return cachedData.result as CnpjResult[];
+        return cachedData.result as LeadResult[];
       } else {
         console.log("⚠️ Cache antigo detectado. Buscando novos dados...");
       }
@@ -98,29 +98,45 @@ export async function fetchCnpjs(apiKey: string, estado: string, tipoOrgao: stri
   const prompt = `
     Você é um analista de inteligência de mercado especializado no setor educacional público brasileiro.
     
-    Gere um dossiê completo de prospecção de órgãos públicos no estado de ${nomeEstado} relacionados ao ramo "${tipoOrgao}".
+    SUA MISSÃO:
+    Encontrar escolas, secretarias de educação ou prefeituras no estado de ${nomeEstado} (${estado}) que correspondam ao termo "${tipoOrgao}".
     
-    Para cada órgão, forneça:
-    1. 'orgao': Nome completo do órgão (ex: 'Secretaria de Educação do Estado da Bahia', 'Prefeitura Municipal de Salvador')
-    2. 'cnpj': CNPJ formatado como 'XX.XXX.XXX/XXXX-XX'
-    3. 'localidade': Cidade e UF (ex: 'Salvador, BA')
-    4. 'potencialCompra': Classifique como 'Alto', 'Médio' ou 'Baixo' baseado em:
-       - Orçamento do órgão
-       - Tamanho da população atendida
-       - Histórico de compras públicas
-       - Projetos recentes
-    5. 'contatosChave': Array com até 3 decisores principais. Para cada contato:
-       - 'nome': Nome completo
-       - 'cargo': Cargo (ex: 'Secretário de Educação', 'Diretor de Compras')
-    6. 'iniciativasRecentes': Resumo de projetos, licitações ou notícias recentes na área de educação (máx 200 caracteres)
-    7. 'fonteInformacao': URL da principal fonte de dados (site oficial, portal da transparência, etc)
-    
-    Priorize:
-    - Secretaria Estadual de Educação e fundos estaduais
-    - Capitais e 20 maiores cidades do estado
-    - Órgãos com histórico ativo de compras
-    
-    Retorne até 30 órgãos.
+    REGRAS ESTRITAS DE PESQUISA E CNPJ (CRÍTICO):
+    1. **HIERARQUIA DE CNPJ**:
+       - Escolas Públicas muitas vezes não têm CNPJ próprio.
+       - **OBRIGATÓRIO**: Se não encontrar CNPJ da escola, busque pelo CNPJ da **"Caixa Escolar"**, **"Conselho Escolar"** ou **"Associação de Pais e Mestres (APM)"** vinculada à escola.
+       - Esses CNPJs são VÁLIDOS para prospecção e devem ser retornados no campo 'cnpj'.
+       - Se usar um desses, adicione nas observações: "CNPJ da Caixa Escolar/APM".
+    2. **VALIDAÇÃO**: Apenas retorne resultados que tenham um CNPJ preenchido (seja da escola ou da entidade mantenedora).
+    3. **DADOS DE CONTATO**: Priorize entidades com telefone (fixo ou celular), e-mail e site oficial.
+    3. **CORPO DOCENTE**: Pesquise ativamente por nomes de diretores, coordenadores, secretários ou professores. Tente encontrar seus e-mails ou telefones corporativos.
+    4. **LOCALIZAÇÃO**: Certifique-se de que a entidade é realmente do estado de ${nomeEstado}.
+    5. **ATUALIZAÇÃO**: Busque os dados mais recentes disponíveis (2024/2025).
+
+    FORMATO DE RESPOSTA (JSON):
+    Retorne um array de objetos com a seguinte estrutura exata:
+    [
+      {
+        "entidade": "Nome Oficial da Escola ou Secretaria",
+        "cnpj": "00.000.000/0000-00",
+        "tipo": "Escola" | "Secretaria" | "Prefeitura",
+        "localidade": "Cidade - UF",
+        "contatoPublico": "(XX) XXXX-XXXX",
+        "contatoNome": "Nome do Diretor/Responsável (se houver)",
+        "contatoCargo": "Cargo do Responsável",
+        "email": "email@dominio.gov.br",
+        "website": "www.site.gov.br",
+        "endereco": "Rua X, Bairro Y, CEP 00000-000",
+        "corpoDocente": "Diretor: João Silva (joao@email.com); Coordenadora: Maria (11 9999-9999)...",
+        "observacoes": "Detalhes relevantes sobre a escola, número de alunos, IDEB, etc."
+      }
+    ]
+
+    IMPORTANTE:
+    - O campo "corpoDocente" deve ser uma string única formatada com ponto e vírgula separando os membros (ex: "Diretor: Nome; Coord: Nome").
+    - **CRÍTICO**: Se não encontrar NOMES ESPECÍFICOS de pessoas, deixe o campo "corpoDocente" VAZIO. NÃO coloque descrições genéricas como "Equipe qualificada" ou "Corpo docente completo".
+    - Se não encontrar CNPJ, pule a entidade.
+    - Tente trazer pelo menos 10 resultados relevantes.
   `;
 
   try {
@@ -189,7 +205,7 @@ export async function fetchCnpjs(apiKey: string, estado: string, tipoOrgao: stri
     }
     
     const isValidData = data.every(item => 
-        typeof item === 'object' && item !== null && 'orgao' in item && 'cnpj' in item
+        typeof item === 'object' && item !== null && 'entidade' in item && 'cnpj' in item
     );
 
     if (!isValidData) {
@@ -210,7 +226,7 @@ export async function fetchCnpjs(apiKey: string, estado: string, tipoOrgao: stri
       console.warn("Erro ao salvar no cache do Firebase:", error);
     }
 
-    return data as CnpjResult[];
+    return data as LeadResult[];
 
   } catch (error) {
     console.error("Erro ao chamar a API Gemini:", error);
@@ -239,7 +255,10 @@ export async function fetchLeads(apiKey: string, estado: string, cidade: string,
   const nomeEstado = estadosBrasil[estado] || estado;
 
   const prompt = `
-    Gere uma lista de contatos (leads) para prospecção de serviços educacionais, com foco em "${tipoEntidade}" na cidade de "${cidade}", estado de ${nomeEstado}.
+    Gere uma lista detalhada de contatos (leads) para prospecção de serviços educacionais, com foco em "${tipoEntidade}" na cidade de "${cidade}", estado de ${nomeEstado}.
+    
+    IMPORTANTE: Inclua informações sobre CORPO DOCENTE e GESTÃO ESCOLAR sempre que possível.
+    
     Para cada lead encontrado, forneça as seguintes informações em formato JSON:
     1.  'entidade': O nome completo da instituição (ex: 'Colégio Anchieta', 'Secretaria Municipal de Educação de ${cidade}').
     2.  'cnpj': O CNPJ da instituição, se for publicamente disponível. Formate como 'XX.XXX.XXX/XXXX-XX'. Se não encontrar, retorne null.
@@ -251,9 +270,10 @@ export async function fetchLeads(apiKey: string, estado: string, cidade: string,
     8.  'endereco': O endereço completo da instituição (Rua, Número, Bairro, CEP). Se não encontrar, retorne null.
     9.  'website': O website oficial da instituição. Se não encontrar, retorne null.
     10. 'email': O e-mail de contato PÚBLICO e GERAL da instituição (ex: contato@escola.com.br). NÃO forneça e-mails pessoais. Se não encontrar, retorne null.
-    11. 'observacoes': Uma breve observação sobre a instituição (ex: "Escola tradicional com foco em esportes", "Rede com 3 unidades").
+    11. 'corpoDocente': Liste APENAS nomes e cargos específicos de membros do corpo docente (ex: "Diretor: João Silva; Coord: Maria"). Se não encontrar nomes específicos, retorne null. NÃO inclua descrições genéricas como "Atende Educação Infantil" ou "Equipe qualificada".
+    12. 'observacoes': Uma breve observação sobre a instituição (ex: "Escola tradicional com foco em esportes", "Rede com 3 unidades", "Reconhecida pelo MEC").
     
-    Gere uma lista com até 50 resultados.
+    Priorize escolas com informações mais completas sobre gestão e corpo docente. Gere uma lista com até 60 resultados.
   `;
 
   try {
@@ -272,6 +292,7 @@ export async function fetchLeads(apiKey: string, estado: string, cidade: string,
               endereco: { type: Type.STRING, nullable: true },
               website: { type: Type.STRING, nullable: true },
               email: { type: Type.STRING, nullable: true },
+              corpoDocente: { type: Type.STRING, nullable: true },
               observacoes: { type: Type.STRING, nullable: true },
             },
             required: ["entidade", "tipo", "localidade"],

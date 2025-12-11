@@ -2444,3 +2444,1121 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================================================ */
+/* BOTÃO ESTEIRA MODERNO                                                        */
+/* ============================================================================ */
+
+.esteira-btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    margin-right: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.esteira-btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.esteira-btn-modern:hover::before {
+    left: 100%;
+}
+
+.esteira-btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.esteira-btn-modern:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
+.esteira-btn-modern span {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 0.3px;
+}
+
+/* Animação de pulso para chamar atenção */
+@keyframes pulse-esteira {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 16px rgba(102, 126, 234, 0.6);
+    }
+}
+
+.esteira-btn-modern:focus {
+    outline: 3px solid rgba(102, 126, 234, 0.3);
+    outline-offset: 2px;
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+    .esteira-btn-modern {
+        padding: 5px 10px;
+        font-size: 12px;
+        gap: 4px;
+    }
+    
+    .esteira-btn-modern span {
+        display: none;
+    }
+    
+    .esteira-btn-modern {
+        padding: 6px;
+        border-radius: 6px;
+    }
+}
+
+/* ================================== ESTEIRA LEGEND ================================== */
+#esteira-legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    min-height: 60px;
+}
+
+.esteira-etapa-col {
+    flex: 1;
+    min-width: 60px !important;
+    max-width: 80px;
+}
+
+.esteira-etapa-col:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+.esteira-etapa-col span:first-child {
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    padding: 6px 8px;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    color: #1e293b !important;
+    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.esteira-etapa-col:hover span:first-child {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Cores específicas para combinar com as colunas da tabela */
+.esteira-etapa-col[data-color="#90EE90"] span:first-child {
+    background-color: #90EE90 !important;
+    border-color: #7CCD7C !important;
+    color: #2d5a2d !important;
+}
+
+.esteira-etapa-col[data-color="#FFB366"] span:first-child {
+    background-color: #FFB366 !important;
+    border-color: #FF9933 !important;
+    color: #8B4513 !important;
+}
+
+.esteira-etapa-col[data-color="#87CEEB"] span:first-child {
+    background-color: #87CEEB !important;
+    border-color: #4682B4 !important;
+    color: #1e3a5f !important;
+}
+
+.esteira-etapa-col[data-color="#D3D3D3"] span:first-child {
+    background-color: #D3D3D3 !important;
+    border-color: #A9A9A9 !important;
+    color: #2d2d2d !important;
+}
+
+.esteira-etapa-col[data-color="#FFFF99"] span:first-child {
+    background-color: #FFFF99 !important;
+    border-color: #FFFF66 !important;
+    color: #666600 !important;
+}
+
+.esteira-etapa-col[data-color="#FFCC99"] span:first-child {
+    background-color: #FFCC99 !important;
+    border-color: #FFB366 !important;
+    color: #8B4513 !important;
+}
+
+@media (max-width: 768px) {
+    #esteira-legend {
+        gap: 4px;
+        padding: 8px;
+        overflow-x: scroll;
+    }
+    
+    .esteira-etapa-col {
+        min-width: 50px !important;
+        max-width: 50px;
+    }
+    
+    .esteira-etapa-col span:last-child {
+        font-size: 8px !important;
+    }
+}
+
+/* ============================================================================ */
+/* CALENDÁRIO / HISTÓRICO DO CLIENTE (estilo Gmail)                             */
+/* ============================================================================ */
+
+#calendar-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+#calendar-modal.active {
+    display: flex;
+}
+
+.calendar-modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 95%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendar-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px 16px 0 0;
+    color: white;
+}
+
+.calendar-modal-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.close-modal-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.2s;
+}
+
+.close-modal-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.calendar-container {
+    padding: 1.5rem 2rem;
+}
+
+/* Navegação do mês */
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.calendar-nav .nav-btn {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.calendar-nav .nav-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.current-month {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+    min-width: 200px;
+    text-align: center;
+}
+
+/* Grid do calendário */
+.calendar-grid {
+    background: #f9fafb;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #667eea;
+    color: white;
+}
+
+.weekday {
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: #e5e7eb;
+}
+
+.calendar-day {
+    background: white;
+    min-height: 80px;
+    padding: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.calendar-day:hover {
+    background: #f0f4ff;
+}
+
+.calendar-day.empty {
+    background: #f9fafb;
+    cursor: default;
+}
+
+.calendar-day.today {
+    background: #eff6ff;
+}
+
+.calendar-day.today .day-number {
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-day.selected {
+    background: #e0e7ff;
+    box-shadow: inset 0 0 0 2px #667eea;
+}
+
+.calendar-day.has-events {
+    background: #fef3c7;
+}
+
+.day-number {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+}
+
+.day-events {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 4px;
+}
+
+.event-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.more-events {
+    font-size: 10px;
+    color: #6b7280;
+}
+
+/* Tabela de horários */
+.schedule-table-container {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.schedule-table-container h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.schedule-hint {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.schedule-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.schedule-day-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #374151;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.add-event-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.add-event-btn:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Cabeçalho da tabela de horários */
+.schedule-table-header {
+    display: grid;
+    grid-template-columns: 70px 100px 1fr 1.5fr;
+    background: #667eea;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 0;
+}
+
+.schedule-table-header > div {
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+.schedule-table-header > div:last-child {
+    border-right: none;
+}
+
+.schedule-table-header .col-time {
+    text-align: center;
+}
+
+.schedule-grid {
+    display: flex;
+    flex-direction: column;
+    max-height: 450px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+}
+
+.schedule-row {
+    display: grid;
+    grid-template-columns: 70px 100px 1fr 1.5fr;
+    background: white;
+    min-height: 44px;
+    align-items: center;
+    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.schedule-row:last-child {
+    border-bottom: none;
+}
+
+.schedule-row:nth-child(even) {
+    background: #f9fafb;
+}
+
+.schedule-row:hover {
+    background: #f0f4ff;
+}
+
+.schedule-time {
+    padding: 10px 8px;
+    background: #f3f4f6;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #6b7280;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #e5e7eb;
+}
+
+/* Colunas da tabela de horários */
+.schedule-col-action {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #374151;
+    border-right: 1px solid #e5e7eb;
+}
+
+.schedule-col-execution {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #374151;
+    border-right: 1px solid #e5e7eb;
+}
+
+.schedule-col-position {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #374151;
+    position: relative;
+    padding-right: 30px;
+}
+
+.action-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.execution-text,
+.position-text {
+    display: block;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.empty-cell {
+    color: #d1d5db;
+    font-size: 0.85rem;
+}
+
+.schedule-col-position .remove-event-btn {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #d1d5db;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border-radius: 4px;
+    opacity: 0;
+}
+
+.schedule-row:hover .remove-event-btn {
+    opacity: 1;
+}
+
+.schedule-col-position .remove-event-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.schedule-col-position .remove-event-btn i {
+    width: 14px;
+    height: 14px;
+}
+
+.schedule-events {
+    flex: 1;
+    padding: 8px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    min-height: 50px;
+}
+
+.schedule-event {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    min-width: 150px;
+    max-width: 300px;
+}
+
+.event-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.event-desc {
+    color: #4b5563;
+    font-size: 0.85rem;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.remove-event-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    margin-left: auto;
+}
+
+.remove-event-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 4px;
+}
+
+.remove-event-btn i {
+    width: 16px;
+    height: 16px;
+}
+
+.no-events {
+    color: #d1d5db;
+    font-size: 0.9rem;
+}
+
+/* Extras / Pausas */
+.extras-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.extras-section h5 {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+}
+
+.extras-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.extra-btn {
+    padding: 8px 16px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.extra-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.extra-btn.active {
+    font-weight: 600;
+}
+
+/* Legenda de atividades */
+.activity-legend {
+    padding: 1rem 2rem 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.activity-legend h4 {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+}
+
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #4b5563;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.legend-item i {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+}
+
+/* Modal de adicionar evento */
+#add-event-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+}
+
+#add-event-modal.active {
+    display: flex;
+}
+
+.add-event-content {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    width: 90%;
+    max-width: 500px;
+    animation: slideUp 0.2s ease-out;
+}
+
+.add-event-content.wide {
+    max-width: 600px;
+}
+
+.add-event-content h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    color: #374151;
+    font-size: 1.1rem;
+}
+
+.add-event-content .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.add-event-content .form-group {
+    margin-bottom: 1rem;
+}
+
+.add-event-content label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.add-event-content select,
+.add-event-content input,
+.add-event-content textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.add-event-content textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.add-event-content select:focus,
+.add-event-content input:focus,
+.add-event-content textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.add-event-content .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
+.add-event-content .btn-cancel {
+    padding: 10px 20px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.add-event-content .btn-cancel:hover {
+    background: #e5e7eb;
+}
+
+.add-event-content .btn-save {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.add-event-content .btn-save:hover {
+    background: #5a67d8;
+}
+
+/* Botão de calendário na tabela */
+.calendar-btn {
+    background: #f0fdf4 !important;
+    color: #16a34a !important;
+}
+
+.calendar-btn:hover {
+    background: #dcfce7 !important;
+}
+
+/* ============================================
+   CALENDÁRIO COMPACTO - Layout com mini meses
+   ============================================ */
+
+.calendar-modal-content.compact {
+    max-width: 1100px;
+    width: 95%;
+}
+
+.calendar-body-compact {
+    padding: 1rem 1.5rem;
+}
+
+/* Navegação do ano */
+.year-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.current-year {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #374151;
+    min-width: 60px;
+    text-align: center;
+}
+
+.nav-btn-small {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: #4b5563;
+}
+
+.nav-btn-small:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.nav-btn-small i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Grid de mini calendários */
+.mini-calendars-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+/* Cada mini calendário */
+.mini-calendar {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.mini-calendar-header {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #374151;
+    padding: 0.25rem 0;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Dias da semana */
+.mini-calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    margin-bottom: 2px;
+}
+
+.mini-calendar-weekdays span {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #9ca3af;
+    padding: 2px 0;
+}
+
+.mini-calendar-weekdays span.domingo {
+    color: #ef4444;
+}
+
+.mini-calendar-weekdays span.sabado {
+    color: #3b82f6;
+}
+
+/* Grid dos dias */
+.mini-calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+}
+
+/* Cada dia no mini calendário */
+.mini-day {
+    font-size: 0.65rem;
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+    color: #374151;
+    font-weight: 500;
+}
+
+.mini-day:hover:not(.empty) {
+    background: #e0e7ff;
+}
+
+.mini-day.empty {
+    cursor: default;
+}
+
+.mini-day.today {
+    background: #667eea;
+    color: white !important;
+    font-weight: 700;
+}
+
+.mini-day.has-events {
+    background: #fef3c7;
+    font-weight: 700;
+}
+
+.mini-day.has-events.today {
+    background: linear-gradient(135deg, #667eea 50%, #f59e0b 50%);
+    color: white !important;
+}
+
+.mini-day.selected {
+    background: #4f46e5 !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.4);
+}
+
+.mini-day.domingo {
+    color: #ef4444;
+}
+
+.mini-day.sabado {
+    color: #3b82f6;
+}
+
+/* Hint para clicar no dia */
+.schedule-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #9ca3af;
+    font-size: 0.9rem;
+    padding: 2rem;
+}
+
+.schedule-hint i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .calendar-modal-content {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+    
+    .calendar-modal-header {
+        border-radius: 0;
+    }
+    
+    .calendar-container {
+        padding: 1rem;
+    }
+    
+    .calendar-day {
+        min-height: 50px;
+        padding: 4px;
+    }
+    
+    .day-number {
+        font-size: 0.75rem;
+    }
+    
+    .schedule-table-container {
+        padding: 1rem;
+    }
+    
+    .activity-legend {
+        padding: 1rem;
+    }
+    
+    .legend-items {
+        gap: 8px;
+    }
+    
+    /* Calendário compacto mobile */
+    .mini-calendars-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .calendar-modal-content.compact {
+        max-width: 100%;
+    }
+}

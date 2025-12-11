@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liberação de Etapas - Sistema de Gestão</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <style>
+        .liberacao-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-section h1 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 1.8em;
+        }
+
+        .header-section p {
+            color: #64748b;
+            margin: 10px 0 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-card.pendentes { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-card.aprovadas { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .stat-card.rejeitadas { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); }
+        .stat-card.total { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+        .stat-card h3 {
+            font-size: 2.5em;
+            margin: 0;
+        }
+
+        .stat-card p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .liberacoes-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            color: #1e293b;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            padding: 10px 20px;
+            background: #f1f5f9;
+            color: #475569;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .liberacao-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+
+        .liberacao-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .liberacao-card.pendente {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .liberacao-card.aprovada {
+            border-left: 4px solid #10b981;
+        }
+
+        .liberacao-card.rejeitada {
+            border-left: 4px solid #ef4444;
+        }
+
+        .liberacao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .liberacao-header h3 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 1.2em;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.pendente {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-badge.aprovada {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-badge.rejeitada {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .liberacao-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            color: #64748b;
+            margin-bottom: 3px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .etapa-flow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .etapa-box {
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .etapa-box.origem {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .etapa-box.destino {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .arrow {
+            font-size: 1.5em;
+            color: #94a3b8;
+        }
+
+        .liberacao-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn.aprovar {
+            background: #10b981;
+            color: white;
+        }
+
+        .action-btn.aprovar:hover {
+            background: #059669;
+        }
+
+        .action-btn.rejeitar {
+            background: #ef4444;
+            color: white;
+        }
+
+        .action-btn.rejeitar:hover {
+            background: #dc2626;
+        }
+
+        .action-btn.detalhes {
+            background: #6366f1;
+            color: white;
+        }
+
+        .action-btn.detalhes:hover {
+            background: #4f46e5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #64748b;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 10px;
+            color: #1e293b;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #1e293b;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+        }
+
+        .toast {
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            margin-top: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+        .toast.warning { background: #f59e0b; }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #1e293b;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab-count {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+
+        .tab-btn.active .tab-count {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .liberacao-container {
+                padding: 10px;
+            }
+
+            .stat-card h3 {
+                font-size: 2em;
+            }
+
+            .liberacao-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .liberacao-actions {
+                width: 100%;
+            }
+
+            .action-btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="liberacao-container">
+        <!-- Header -->
+        <div class="header-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h1>🔓 Liberação de Etapas</h1>
+                    <p>Gerencie as solicitações de liberação do fluxo de trabalho</p>
+                </div>
+                <div class="nav-links">
+                    <a href="index.html">📊 Dashboard</a>
+                    <a href="comunicacao-equipe.html">💬 Comunicação</a>
+                    <a href="users-management.html">👥 Usuários</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card pendentes">
+                <h3 id="stat-pendentes">-</h3>
+                <p>Pendentes</p>
+            </div>
+            <div class="stat-card aprovadas">
+                <h3 id="stat-aprovadas">-</h3>
+                <p>Aprovadas</p>
+            </div>
+            <div class="stat-card rejeitadas">
+                <h3 id="stat-rejeitadas">-</h3>
+                <p>Rejeitadas</p>
+            </div>
+            <div class="stat-card total">
+                <h3 id="stat-total">-</h3>
+                <p>Total</p>
+            </div>
+        </div>
+
+        <!-- Liberações Section -->
+        <div class="liberacoes-section">
+            <div class="section-header">
+                <h2>Solicitações de Liberação</h2>
+                <button class="action-btn detalhes" onclick="carregarLiberacoes()">
+                    🔄 Atualizar
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="pendentes" onclick="trocarTab('pendentes')">
+                    Pendentes <span class="tab-count" id="count-pendentes">0</span>
+                </button>
+                <button class="tab-btn" data-tab="aprovadas" onclick="trocarTab('aprovadas')">
+                    Aprovadas <span class="tab-count" id="count-aprovadas">0</span>
+                </button>
+                <button class="tab-btn" data-tab="rejeitadas" onclick="trocarTab('rejeitadas')">
+                    Rejeitadas <span class="tab-count" id="count-rejeitadas">0</span>
+                </button>
+            </div>
+
+            <!-- Lista de Liberações -->
+            <div id="liberacoes-container">
+                <div class="empty-state">
+                    <p>Carregando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ação -->
+    <div class="modal-overlay" id="modal-acao">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-titulo">Processar Liberação</h2>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Observação (opcional):</label>
+                <textarea id="modal-observacao" placeholder="Adicione uma observação sobre esta decisão..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn rejeitar" style="background: #94a3b8;" onclick="fecharModal()">
+                    Cancelar
+                </button>
+                <button class="action-btn" id="modal-confirmar">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="auth-manager.js"></script>
+    <script>
+        // Estado da aplicação
+        let todasLiberacoes = [];
+        let tabAtiva = 'pendentes';
+        let liberacaoSelecionada = null;
+        let acaoSelecionada = null;
+
+        // Mapeamento de nomes de etapas
+        const ETAPAS_NOMES = {
+            'prospeccao': 'Prospecção 3 Canais',
+            'aumentar_conexao': 'Aumentar Conexão',
+            'envio_consultor': 'Envio Consultor',
+            'efetivacao': 'Efetivação',
+            'registros_legais': 'Registros Legais',
+            'separacao': 'Separação',
+            'entrega': 'Entrega',
+            'recebimentos': 'Recebimentos',
+            'formacao': 'Formação',
+            'documentarios': 'Documentários',
+            'gerar_graficos': 'Gerar Gráficos',
+            'renovacao': 'Renovação'
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            verificarAutenticacao();
+            carregarLiberacoes();
+        });
+
+        function verificarAutenticacao() {
+            if (!authManager.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Verificar se é admin ou supervisor
+            const permissions = authManager.getUserPermissions();
+            if (!permissions.canApproveLiberacao) {
+                showToast('error', 'Você não tem permissão para acessar esta página');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }
+        }
+
+        async function carregarLiberacoes() {
+            try {
+                const token = authManager.getToken();
+                
+                // Buscar liberações pendentes
+                const response = await fetch('/api/liberacao/pendentes', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar liberações');
+
+                const data = await response.json();
+                todasLiberacoes = data.liberacoes || [];
+
+                // Buscar histórico completo (todas as liberações)
+                const histResponse = await fetch('/api/liberacao/historico/0', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).catch(() => null);
+
+                if (histResponse && histResponse.ok) {
+                    const histData = await histResponse.json();
+                    // Combinar pendentes com histórico
+                    const historico = histData.historico || [];
+                    const pendentesIds = new Set(todasLiberacoes.map(l => l.id));
+                    
+                    // Adicionar apenas as que não estão nos pendentes
+                    historico.forEach(lib => {
+                        if (!pendentesIds.has(lib.id)) {
+                            todasLiberacoes.push(lib);
+                        }
+                    });
+                }
+
+                atualizarStats();
+                renderizarLiberacoes();
+
+            } catch (error) {
+                console.error('Erro:', error);
+                showToast('error', 'Erro ao carregar liberações');
+            }
+        }
+
+        function atualizarStats() {
+            const pendentes = todasLiberacoes.filter(l => l.status === 'pendente').length;
+            const aprovadas = todasLiberacoes.filter(l => l.status === 'aprovada').length;
+            const rejeitadas = todasLiberacoes.filter(l => l.status === 'rejeitada').length;
+
+            document.getElementById('stat-pendentes').textContent = pendentes;
+            document.getElementById('stat-aprovadas').textContent = aprovadas;
+            document.getElementById('stat-rejeitadas').textContent = rejeitadas;
+            document.getElementById('stat-total').textContent = todasLiberacoes.length;
+
+            document.getElementById('count-pendentes').textContent = pendentes;
+            document.getElementById('count-aprovadas').textContent = aprovadas;
+            document.getElementById('count-rejeitadas').textContent = rejeitadas;
+        }
+
+        function trocarTab(tab) {
+            tabAtiva = tab;
+            
+            // Atualizar botões
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === tab) {
+                    btn.classList.add('active');
+                }
+            });
+
+            renderizarLiberacoes();
+        }
+
+        function renderizarLiberacoes() {
+            const container = document.getElementById('liberacoes-container');
+            
+            // Filtrar por tab
+            const liberacoesFiltradas = todasLiberacoes.filter(l => {
+                if (tabAtiva === 'pendentes') return l.status === 'pendente';
+                if (tabAtiva === 'aprovadas') return l.status === 'aprovada';
+                if (tabAtiva === 'rejeitadas') return l.status === 'rejeitada';
+                return true;
+            });
+
+            if (liberacoesFiltradas.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3>Nenhuma liberação ${tabAtiva}</h3>
+                        <p>Não há solicitações de liberação ${tabAtiva} no momento.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = liberacoesFiltradas.map(lib => renderizarCard(lib)).join('');
+        }
+
+        function renderizarCard(liberacao) {
+            const nomeEtapaAtual = ETAPAS_NOMES[liberacao.etapa_atual] || liberacao.etapa_atual;
+            const nomeEtapaDestino = ETAPAS_NOMES[liberacao.etapa_destino] || liberacao.etapa_destino;
+            const dataFormatada = new Date(liberacao.solicitado_em).toLocaleString('pt-BR');
+
+            let acoes = '';
+            if (liberacao.status === 'pendente') {
+                acoes = `
+                    <button class="action-btn aprovar" onclick="abrirModalAcao(${liberacao.id}, 'aprovar')">
+                        ✅ Aprovar
+                    </button>
+                    <button class="action-btn rejeitar" onclick="abrirModalAcao(${liberacao.id}, 'rejeitar')">
+                        ❌ Rejeitar
+                    </button>
+                `;
+            }
+
+            return `
+                <div class="liberacao-card ${liberacao.status}">
+                    <div class="liberacao-header">
+                        <h3>📋 ${liberacao.cliente_nome || 'Cliente #' + liberacao.cliente_id}</h3>
+                        <span class="status-badge ${liberacao.status}">${liberacao.status}</span>
+                    </div>
+                    
+                    <div class="etapa-flow">
+                        <div class="etapa-box origem">${nomeEtapaAtual}</div>
+                        <span class="arrow">→</span>
+                        <div class="etapa-box destino">${nomeEtapaDestino}</div>
+                    </div>
+
+                    <div class="liberacao-info">
+                        <div class="info-item">
+                            <span class="info-label">Solicitante</span>
+                            <span class="info-value">👤 ${liberacao.solicitante_nome || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Data da Solicitação</span>
+                            <span class="info-value">📅 ${dataFormatada}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Perfil Responsável</span>
+                            <span class="info-value">🏷️ ${liberacao.perfil_responsavel || 'N/A'}</span>
+                        </div>
+                        ${liberacao.liberador_nome ? `
+                            <div class="info-item">
+                                <span class="info-label">Processado por</span>
+                                <span class="info-value">👤 ${liberacao.liberador_nome}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${liberacao.observacao ? `
+                        <div style="background: #f1f5f9; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                            <strong>Observação:</strong> ${liberacao.observacao}
+                        </div>
+                    ` : ''}
+
+                    <div class="liberacao-actions">
+                        ${acoes}
+                        <button class="action-btn detalhes" onclick="verDetalhesCliente(${liberacao.cliente_id})">
+                            👁️ Ver Cliente
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function abrirModalAcao(liberacaoId, acao) {
+            liberacaoSelecionada = liberacaoId;
+            acaoSelecionada = acao;
+
+            document.getElementById('modal-titulo').textContent = 
+                acao === 'aprovar' ? '✅ Aprovar Liberação' : '❌ Rejeitar Liberação';
+            
+            document.getElementById('modal-observacao').value = '';
+            
+            const btnConfirmar = document.getElementById('modal-confirmar');
+            btnConfirmar.className = `action-btn ${acao === 'aprovar' ? 'aprovar' : 'rejeitar'}`;
+            btnConfirmar.textContent = acao === 'aprovar' ? 'Aprovar' : 'Rejeitar';
+            btnConfirmar.onclick = confirmarAcao;
+
+            document.getElementById('modal-acao').classList.add('active');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-acao').classList.remove('active');
+            liberacaoSelecionada = null;
+            acaoSelecionada = null;
+        }
+
+        async function confirmarAcao() {
+            if (!liberacaoSelecionada || !acaoSelecionada) return;
+
+            const observacao = document.getElementById('modal-observacao').value.trim();
+
+            try {
+                const token = authManager.getToken();
+                const response = await fetch(`/api/liberacao/processar/${liberacaoSelecionada}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        acao: acaoSelecionada,
+                        observacao
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro ao processar liberação');
+                }
+
+                const result = await response.json();
+                
+                showToast('success', `Liberação ${acaoSelecionada === 'aprovar' ? 'aprovada' : 'rejeitada'} com sucesso!`);
+                fecharModal();
+                carregarLiberacoes();
+
+            } catch (error) {
+                console.error('Erro:', error);
+                showToast('error', error.message);
+            }
+        }
+
+        function verDetalhesCliente(clienteId) {
+            window.location.href = `client-details.html?id=${clienteId}`;
+        }
+
+        function showToast(type, message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

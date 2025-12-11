@@ -29,6 +29,7 @@ export interface LeadResult {
   endereco?: string;
   website?: string;
   email?: string;
+  corpoDocente?: string;
   observacoes?: string;
 }
 

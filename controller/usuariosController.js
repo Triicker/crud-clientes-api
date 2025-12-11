@@ -25,30 +25,50 @@ exports.createUsuario = async (req, res) => {
   // A requisição agora deve enviar 'perfil_id' (ex: 1, 2, 3) em vez de 'perfil' (ex: "administrador")
   const { nome, email, senha, perfil_id } = req.body; 
 
+  // Validação básica
+  if (!nome || !email || !senha || !perfil_id) {
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+  }
+
   try {
+    // Verificar se o email já existe
+    const emailExists = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
+    if (emailExists.rows.length > 0) {
+      return res.status(400).json({ error: 'Este email já está cadastrado' });
+    }
+
     const senha_hash = await bcrypt.hash(senha, saltRounds);
 
     const query = `
-      INSERT INTO usuarios (nome, email, senha_hash, perfil_id) -- Altera para perfil_id
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO usuarios (nome, email, senha_hash, perfil_id, ativo)
+      VALUES ($1, $2, $3, $4, true)
       RETURNING id, nome, email, perfil_id;
     `;
-    const values = [nome, email, senha_hash, perfil_id]; // Passa o ID
+    const values = [nome, email, senha_hash, perfil_id];
 
     const result = await pool.query(query, values);
     
     // Para retornar o nome do perfil na resposta, fazemos um novo SELECT ou ajustamos o retorno
     const novoUsuario = await pool.query(`${BASE_SELECT} WHERE u.id = $1`, [result.rows[0].id]);
 
-
     res.status(201).json({
+      success: true,
       mensagem: 'Usuário criado com sucesso!',
       usuario: novoUsuario.rows[0]
     });
   } catch (error) {
-    // ... (tratamento de erros)
     console.error('Erro ao criar usuário:', error);
-    res.status(500).json({ erro: 'Erro interno do servidor ao criar usuário.' });
+    console.error('Stack:', error.stack);
+    
+    // Tratamento específico de erros do PostgreSQL
+    if (error.code === '23505') { // Unique violation
+      return res.status(400).json({ error: 'Este email já está cadastrado' });
+    }
+    if (error.code === '23503') { // Foreign key violation
+      return res.status(400).json({ error: 'Perfil inválido' });
+    }
+    
+    res.status(500).json({ error: 'Erro interno do servidor ao criar usuário: ' + error.message });
   }
 };
 
@@ -70,11 +90,28 @@ exports.getUsuarioById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await pool.query(`${BASE_SELECT} WHERE u.id = $1`, [id]); // Usa o SELECT BASE com WHERE
+    const result = await pool.query(`${BASE_SELECT} WHERE u.id = $1`, [id]);
 
-    // ... (restante do código)
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Usuário não encontrado.' 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        usuario: result.rows[0]
+      },
+      message: 'Usuário encontrado com sucesso'
+    });
   } catch (error) {
-    // ...
+    console.error(`Erro ao buscar usuário com ID ${id}:`, error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erro interno do servidor ao buscar usuário.' 
+    });
   }
 };
 

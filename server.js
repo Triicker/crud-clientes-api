@@ -101,9 +101,32 @@ app.use('/api/auth', authRoutes);
 const interacoesRoutes = require('./routes/interacoes');
 app.use('/api/interacoes', interacoesRoutes);
 
+const tarefasRoutes = require('./routes/tarefas');
+app.use('/api', tarefasRoutes);
+
 // E-mail
 const emailRoutes = require('./routes/email');
 app.use('/api/email', emailRoutes);
+
+// Histórico de alterações (audit log)
+const historicoRoutes = require('./routes/historico');
+app.use('/api/historico', historicoRoutes);
+
+// Comunicação da equipe
+const comunicacaoRoutes = require('./routes/comunicacao');
+app.use('/api/comunicacao', comunicacaoRoutes);
+
+// Liberação de etapas
+const liberacaoRoutes = require('./routes/liberacao');
+app.use('/api/liberacao', liberacaoRoutes);
+
+// Gestão de equipe (observações, métricas, ranking)
+const gestaoEquipeRoutes = require('./routes/gestaoEquipe');
+app.use('/api/equipe', gestaoEquipeRoutes);
+
+// Gestão de vendedores (estatísticas, metas, observações)
+const vendedoresRoutes = require('./routes/vendedores');
+app.use('/api/vendedores', vendedoresRoutes);
 
 
 // Inicia o servidor

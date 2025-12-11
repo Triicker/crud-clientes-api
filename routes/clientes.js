@@ -18,9 +18,17 @@ router.get('/', clientesController.getAllClientes);
 
 // ⚠️ IMPORTANTE: Rotas mais específicas devem vir ANTES das rotas genéricas com parâmetros
 
+// Rota para buscar cliente por CNPJ (GET /api/clientes/cnpj/:cnpj)
+// DEVE estar ANTES de /:id para não ser capturada por essa rota genérica
+router.get('/cnpj/:cnpj', clientesController.getClienteByCnpj);
+
 // Rota para LER relatório completo de um cliente (GET /api/clientes/:id/relatorio)
 // DEVE estar ANTES de /:id para não ser capturada por essa rota genérica
 router.get('/:id/relatorio', clientesController.getClienteRelatorio);
+
+// Rotas de Calendário/Histórico do cliente (GET e PUT)
+router.get('/:id/calendario', clientesController.getCalendario);
+router.put('/:id/calendario', clientesController.updateCalendario);
 
 // Rota para LER um cliente específico por ID (GET /api/clientes/:id)
 // O ':id' é um parâmetro dinâmico na URL

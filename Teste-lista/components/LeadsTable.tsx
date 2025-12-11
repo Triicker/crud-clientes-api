@@ -1,185 +1,636 @@
-import React from 'react';
+/**
+ * ================================================================================
+ * LEADS TABLE COMPONENT - Componente para Exibição e Adição de Leads
+ * ================================================================================
+ * 
+ * PROPÓSITO:
+ * Este componente exibe uma tabela de leads obtidos via pesquisa do Gemini AI
+ * e permite adicionar esses leads ao banco de dados como clientes reais.
+ * 
+ * TIPOS DE DADOS IMPORTANTES (de types.ts):
+ * - LeadResult: { entidade, cnpj?, tipo, localidade, contatoNome?, contatoCargo?,
+ *                contatoPublico?, endereco?, website?, email?, corpoDocente?, observacoes? }
+ * 
+ * MAPEAMENTO LeadResult → Cliente:
+ * - entidade → nome (nome do cliente)
+ * - localidade → cidade + uf (extraído via regex "Cidade, UF")
+ * - contatoPublico → telefone
+ * - tipo → tipo
+ * - observacoes, email, website → concatenados em observacoes
+ * 
+ * ================================================================================
+ */
+
+import React, { useState, useEffect } from 'react';
 import type { LeadResult } from '../types';
-import CopyButton from './CopyButton';
+
+// ============================================================================
+// INTERFACES
+// ============================================================================
 
 interface LeadsTableProps {
   data: LeadResult[];
-  onDetails: (name: string, location: string) => void;
+  onDetails?: (name: string, location: string) => void;
+  onAddClient?: (lead: LeadResult, clienteId: number) => void;
+  apiBaseUrl?: string;
 }
 
-const LeadsTable: React.FC<LeadsTableProps> = ({ data, onDetails }) => {
+interface CorpoDocenteMember {
+  funcao: string;
+  nome: string;
+  zap?: string;
+  email?: string;
+  escola?: string;
+}
+
+// ============================================================================
+// FUNÇÕES AUXILIARES - Extração de Dados
+// ============================================================================
+
+/**
+ * Extrai cidade e UF da string localidade
+ * Exemplos: "Salvador, BA" → { cidade: "Salvador", uf: "BA" }
+ *           "São Paulo - SP" → { cidade: "São Paulo", uf: "SP" }
+ */
+const parseLocalidade = (localidade: string | undefined): { cidade: string | null; uf: string | null } => {
+  if (!localidade) return { cidade: null, uf: null };
   
-  const handleAddClient = async (item: LeadResult) => {
-    // Parse Localidade
-    let cidade = '';
-    let uf = '';
-    if (item.localidade) {
-        const parts = item.localidade.split(',');
-        if (parts.length >= 2) {
-            cidade = parts[0].trim();
-            uf = parts[1].trim();
-        } else {
-            cidade = item.localidade;
+  // Tenta padrão "Cidade, UF" ou "Cidade - UF"
+  const match = localidade.match(/^(.+?)[,\-]\s*([A-Z]{2})$/i);
+  if (match) {
+    return { cidade: match[1].trim(), uf: match[2].toUpperCase() };
+  }
+  
+  // Se não casar, retorna localidade como cidade
+  return { cidade: localidade.trim(), uf: null };
+};
+
+/**
+ * Parseia string de corpo docente do Gemini em array estruturado
+ */
+const parseCorpoDocente = (corpoDocenteString: string | undefined, escolaNome: string): CorpoDocenteMember[] => {
+  if (!corpoDocenteString || corpoDocenteString.trim() === '') {
+    return [];
+  }
+
+  const members: CorpoDocenteMember[] = [];
+  
+  // Pattern: "Cargo: Nome (email/telefone)"
+  const cargoNomePattern = /(?:diretor|coordenador|vice|secretário|pedagogo|orientador)[a-z]*[:\s]+([A-Za-zÀ-ÿ\s]+?)(?:\s*\(([^)]+)\))?(?=[,;.]|$)/gi;
+  
+  let match;
+  while ((match = cargoNomePattern.exec(corpoDocenteString)) !== null) {
+    const fullMatch = match[0];
+    const nome = match[1]?.trim();
+    const extraInfo = match[2]?.trim();
+    
+    if (nome && nome.length > 2) {
+      let funcao = 'Professor';
+      const lowerMatch = fullMatch.toLowerCase();
+      
+      if (lowerMatch.includes('diretor')) funcao = 'Diretor';
+      else if (lowerMatch.includes('vice')) funcao = 'Vice-Diretor';
+      else if (lowerMatch.includes('coordenador')) funcao = 'Coordenador';
+      else if (lowerMatch.includes('secretário')) funcao = 'Secretário';
+      else if (lowerMatch.includes('pedagogo')) funcao = 'Pedagogo';
+      else if (lowerMatch.includes('orientador')) funcao = 'Orientador';
+      
+      let email: string | undefined;
+      let zap: string | undefined;
+      
+      if (extraInfo) {
+        if (extraInfo.includes('@')) {
+          email = extraInfo;
+        } else if (/[\d\-\(\)]+/.test(extraInfo)) {
+          zap = extraInfo;
         }
+      }
+      
+      members.push({ funcao, nome, email, zap, escola: escolaNome });
+    }
+  }
+  
+  // Se não encontrou nada específico, retorna vazio para não poluir o banco
+  if (members.length === 0) {
+    return [];
+  }
+  
+  return members;
+};
+
+/**
+ * Monta string de observações com dados extras do lead
+ */
+const buildObservacoes = (lead: LeadResult): string => {
+  const parts: string[] = [];
+  
+  if (lead.observacoes) parts.push(lead.observacoes);
+  if (lead.email) parts.push(`📧 Email: ${lead.email}`);
+  if (lead.website) parts.push(`🌐 Website: ${lead.website}`);
+  if (lead.endereco) parts.push(`📍 Endereço: ${lead.endereco}`);
+  if (lead.contatoNome && lead.contatoCargo) {
+    parts.push(`👤 Contato: ${lead.contatoNome} (${lead.contatoCargo})`);
+  }
+  if (lead.corpoDocente) parts.push(`📚 Corpo Docente: ${lead.corpoDocente}`);
+  
+  parts.push(`\n[Adicionado via Gemini Search em ${new Date().toLocaleDateString('pt-BR')}]`);
+  
+  return parts.join('\n');
+};
+
+// ============================================================================
+// COMPONENTE PRINCIPAL
+// ============================================================================
+
+const LeadsTable: React.FC<LeadsTableProps> = ({ 
+  data: leads = [], 
+  onDetails,
+  onAddClient,
+  apiBaseUrl = 'http://localhost:3000'
+}) => {
+  const [localLeads, setLocalLeads] = useState<LeadResult[]>([]);
+  const [addingLead, setAddingLead] = useState<string | null>(null);
+  const [addedLeads, setAddedLeads] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLocalLeads(leads);
+  }, [leads]);
+
+  const handleCnpjChange = (index: number, newCnpj: string) => {
+    const updated = [...localLeads];
+    updated[index] = { ...updated[index], cnpj: newCnpj };
+    setLocalLeads(updated);
+  };
+
+  // ==========================================================================
+  // Criar registros de corpo docente
+  // ==========================================================================
+  const createCorpoDocenteRecords = async (clienteId: number, members: CorpoDocenteMember[]): Promise<number> => {
+    let successCount = 0;
+    
+    for (const member of members) {
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/docentes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...member, cliente_id: clienteId }),
+        });
+        
+        if (response.ok) {
+          successCount++;
+        }
+      } catch (err) {
+        console.error('[createCorpoDocenteRecords] Erro:', err);
+      }
+    }
+    
+    return successCount;
+  };
+
+  // ==========================================================================
+  // Handler principal: adicionar lead como cliente
+  // ==========================================================================
+  const handleAddClient = async (lead: LeadResult) => {
+    if (!lead.cnpj) {
+      setError('Este lead não possui CNPJ válido para cadastro.');
+      return;
     }
 
-    // Construct Payload
-    let obs = item.observacoes || '';
-    if (item.contatoNome) {
-        obs += `\nContato Relevante: ${item.contatoNome} - ${item.contatoCargo || ''}`;
-    }
-    if (item.email) {
-        obs += `\nEmail: ${item.email}`;
-    }
-    if (item.website) {
-        obs += `\nWebsite: ${item.website}`;
-    }
-    if (item.endereco) {
-        obs += `\nEndereço: ${item.endereco}`;
-    }
+    setError(null);
+    setSuccess(null);
+    setAddingLead(lead.cnpj);
 
-    const payload = {
-        nome: item.entidade,
-        tipo: item.tipo,
-        cnpj: item.cnpj || '',
-        cidade: cidade,
-        uf: uf,
-        telefone: item.contatoPublico || '',
-        observacoes: obs.trim()
-    };
-
-    if (!payload.nome || !payload.cnpj) {
-        alert('Atenção: Nome e CNPJ são obrigatórios para cadastrar o cliente.');
-        if (!confirm('Deseja tentar cadastrar mesmo assim?')) {
-            return;
-        }
-    } else {
-        if (!confirm(`Deseja adicionar o cliente "${payload.nome}" ao sistema?`)) {
-            return;
-        }
-    }
+    // Extrai cidade/uf da localidade
+    const { cidade, uf } = parseLocalidade(lead.localidade);
 
     try {
-        const response = await fetch('/api/clientes', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
+      // Verificar se CNPJ já existe
+      const checkResponse = await fetch(`${apiBaseUrl}/api/clientes/cnpj/${lead.cnpj}`);
+      
+      if (checkResponse.ok) {
+        // Cliente já existe
+        const existingClient = await checkResponse.json();
+        
+        const shouldUpdate = window.confirm(
+          `⚠️ Cliente já cadastrado!\n\n` +
+          `Nome: ${existingClient.nome}\n` +
+          `CNPJ: ${existingClient.cnpj}\n` +
+          `Status: ${existingClient.status || 'N/A'}\n\n` +
+          `Deseja ATUALIZAR os dados com as informações do lead?`
+        );
+        
+        if (!shouldUpdate) {
+          setError('Operação cancelada pelo usuário.');
+          setAddingLead(null);
+          return;
+        }
+        
+        // Atualiza cliente existente
+        // Preserva observações antigas e adiciona as novas
+        const newObservacoes = existingClient.observacoes 
+          ? `${existingClient.observacoes}\n\n--- Atualização Gemini (${new Date().toLocaleDateString()}) ---\n${buildObservacoes(lead)}`
+          : buildObservacoes(lead);
+
+        const updatePayload = {
+          ...existingClient, // Mantém campos existentes (status, vendedor, etc.)
+          nome: lead.entidade,
+          tipo: lead.tipo || existingClient.tipo || 'Escola',
+          cidade: cidade,
+          uf: uf,
+          telefone: lead.contatoPublico || existingClient.telefone,
+          observacoes: newObservacoes,
+          cnpj: lead.cnpj // Garante que o CNPJ vai no payload
+        };
+
+        const updateResponse = await fetch(`${apiBaseUrl}/api/clientes/${existingClient.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatePayload),
         });
 
-        if (response.ok) {
-            alert('Cliente adicionado com sucesso!');
-        } else if (response.status === 409) {
-            alert('Este cliente já está cadastrado no sistema (CNPJ duplicado).');
-        } else {
-            const errorData = await response.json();
-            alert(`Erro ao adicionar cliente: ${errorData.erro || 'Erro desconhecido'}`);
+        if (!updateResponse.ok) {
+          throw new Error(`Erro ao atualizar: ${updateResponse.status}`);
         }
-    } catch (error) {
-        console.error('Erro na requisição:', error);
-        alert('Erro de conexão ao adicionar cliente.');
+
+        // Adiciona corpo docente
+        let corpoDocenteCount = 0;
+        if (lead.corpoDocente) {
+          const members = parseCorpoDocente(lead.corpoDocente, lead.entidade);
+          if (members.length > 0) {
+            corpoDocenteCount = await createCorpoDocenteRecords(existingClient.id, members);
+          }
+        }
+
+        setAddedLeads(prev => new Set(prev).add(lead.cnpj!));
+        let msg = `✅ Cliente "${lead.entidade}" atualizado com sucesso!`;
+        if (corpoDocenteCount > 0) {
+          msg += `\n📚 ${corpoDocenteCount} registro(s) de corpo docente criado(s).`;
+        }
+        setSuccess(msg);
+        
+      } else if (checkResponse.status === 404) {
+        // Cliente não existe - criar novo
+        const payload = {
+          nome: lead.entidade,
+          tipo: lead.tipo || 'Escola',
+          cnpj: lead.cnpj,
+          cidade: cidade,
+          uf: uf,
+          telefone: lead.contatoPublico || null,
+          observacoes: buildObservacoes(lead),
+          status: 'Prospecção'
+        };
+
+        const response = await fetch(`${apiBaseUrl}/api/clientes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          if (response.status === 409) {
+            throw new Error('CNPJ já cadastrado no sistema (409 Conflict)');
+          }
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.erro || `Erro ${response.status}`);
+        }
+
+        const newClient = await response.json();
+
+        // Adiciona corpo docente
+        let corpoDocenteCount = 0;
+        if (lead.corpoDocente) {
+          const members = parseCorpoDocente(lead.corpoDocente, lead.entidade);
+          if (members.length > 0) {
+            corpoDocenteCount = await createCorpoDocenteRecords(newClient.id, members);
+          }
+        }
+
+        setAddedLeads(prev => new Set(prev).add(lead.cnpj!));
+        let msg = `✅ Cliente "${lead.entidade}" adicionado com sucesso! (ID: ${newClient.id})`;
+        if (corpoDocenteCount > 0) {
+          msg += `\n📚 ${corpoDocenteCount} registro(s) de corpo docente criado(s).`;
+        }
+        setSuccess(msg);
+
+        if (onAddClient) {
+          onAddClient(lead, newClient.id);
+        }
+        
+      } else {
+        throw new Error(`Erro ao verificar CNPJ: ${checkResponse.status}`);
+      }
+      
+    } catch (err) {
+      console.error('[handleAddClient] Erro:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(`Falha ao adicionar cliente: ${errorMessage}`);
+    } finally {
+      setAddingLead(null);
     }
   };
 
+  // ==========================================================================
+  // RENDER
+  // ==========================================================================
+  
+  if (!leads || leads.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-md">
-      <table className="w-full text-sm text-left text-slate-600">
-        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
-          <tr>
-            <th scope="col" className="px-6 py-3 font-bold">Entidade</th>
-            <th scope="col" className="px-6 py-3 font-bold">Contato Relevante</th>
-            <th scope="col" className="px-6 py-3 font-bold">Informações de Contato</th>
-            <th scope="col" className="px-6 py-3 font-bold">Observações</th>
-            <th scope="col" className="px-6 py-3 font-bold text-center">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item, index) => (
-            <tr key={index} className="bg-white border-b hover:bg-slate-50 transition-colors duration-200">
-              <td className="px-6 py-4 font-medium text-slate-900 min-w-[250px] align-top">
-                <div className="font-bold text-base mb-1">{item.entidade}</div>
-                <div className="text-xs text-slate-500 mb-1">{item.tipo}</div>
-                <div className="text-xs text-slate-500 mb-2">{item.localidade}</div>
-                {item.cnpj && (
-                    <div className="flex items-center gap-2">
-                        <span className="font-mono text-indigo-600 text-xs bg-indigo-50 px-2 py-1 rounded">{item.cnpj}</span>
-                        <CopyButton textToCopy={item.cnpj} />
-                    </div>
-                )}
-              </td>
-              <td className="px-6 py-4 min-w-[200px] align-top">
-                {item.contatoNome ? (
-                  <>
-                    <div className="font-semibold text-slate-800">{item.contatoNome}</div>
-                    <div className="text-xs text-slate-500">{item.contatoCargo}</div>
-                  </>
-                ) : (
-                  <span className="text-slate-400 italic">N/A</span>
-                )}
-              </td>
-              <td className="px-6 py-4 min-w-[250px] align-top">
-                <div className="flex flex-col gap-2">
-                    {item.website && (
-                        <div className="flex items-center gap-2 text-xs">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                            <a href={item.website.startsWith('http') ? item.website : `https://${item.website}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline truncate max-w-[200px]">
-                                {item.website}
-                            </a>
-                        </div>
-                    )}
-                    {item.email && (
-                        <div className="flex items-center gap-2 text-xs">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            <span className="truncate max-w-[180px]" title={item.email}>{item.email}</span>
-                            <CopyButton textToCopy={item.email} />
-                        </div>
-                    )}
-                    {item.contatoPublico && (
-                        <div className="flex items-center gap-2 text-xs">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            <span>{item.contatoPublico}</span>
-                            <CopyButton textToCopy={item.contatoPublico} />
-                        </div>
-                    )}
-                    {!item.website && !item.email && !item.contatoPublico && (
-                        <span className="text-slate-400 italic text-xs">Nenhuma informação disponível</span>
-                    )}
-                </div>
-              </td>
-              <td className="px-6 py-4 min-w-[200px] align-top">
-                <p className="text-xs text-slate-600 leading-relaxed">
-                    {item.observacoes || <span className="text-slate-400 italic">Sem observações</span>}
-                </p>
-              </td>
-              <td className="px-6 py-4 align-top">
-                <div className="flex flex-col items-center justify-start gap-2">
-                    <button onClick={() => onDetails(item.entidade, item.localidade)} className="text-indigo-600 hover:text-indigo-800 font-semibold text-xs py-1 px-3 rounded-md border border-indigo-200 hover:bg-indigo-50 transition-all w-full">
-                        Ver Detalhes
-                    </button>
-                    
-                    <button 
-                        onClick={() => handleAddClient(item)}
-                        className="text-green-600 hover:text-green-800 font-semibold text-xs py-1 px-3 rounded-md border border-green-200 hover:bg-green-50 transition-all w-full flex items-center justify-center gap-1"
-                        title="Adicionar ao Sistema"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                        Adicionar
-                    </button>
-                </div>
-              </td>
+    <div className="leads-table-container" style={{ marginTop: '20px' }}>
+      {/* Mensagens de Feedback */}
+      {error && (
+        <div style={{ 
+          padding: '12px', 
+          backgroundColor: '#ffebee', 
+          color: '#c62828',
+          borderRadius: '4px',
+          marginBottom: '16px',
+          border: '1px solid #ef9a9a'
+        }}>
+          ❌ {error}
+        </div>
+      )}
+      
+      {success && (
+        <div style={{ 
+          padding: '12px', 
+          backgroundColor: '#e8f5e9', 
+          color: '#2e7d32',
+          borderRadius: '4px',
+          marginBottom: '16px',
+          border: '1px solid #a5d6a7',
+          whiteSpace: 'pre-line'
+        }}>
+          {success}
+        </div>
+      )}
+
+      {/* Tabela Principal */}
+      <div style={{ overflowX: 'auto' }}>
+        <table className="min-w-full" style={{ 
+          borderCollapse: 'collapse', 
+          width: '100%',
+          fontSize: '14px'
+        }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f8f9fa' }}>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e9ecef', fontWeight: '600' }}>
+                Entidade
+              </th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e9ecef', fontWeight: '600' }}>
+                CNPJ
+              </th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e9ecef', fontWeight: '600' }}>
+                Tipo
+              </th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e9ecef', fontWeight: '600' }}>
+                Localidade
+              </th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e9ecef', fontWeight: '600' }}>
+                Contato
+              </th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e9ecef', fontWeight: '600' }}>
+                Corpo Docente
+              </th>
+              <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #e9ecef', fontWeight: '600' }}>
+                Ações
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {localLeads.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                  Nenhum resultado encontrado. Tente outra pesquisa.
+                </td>
+              </tr>
+            ) : (
+              localLeads.map((lead: LeadResult, index: number) => (
+              <tr 
+                key={lead.cnpj || `lead-${index}`}
+                style={{ 
+                  borderBottom: '1px solid #e9ecef',
+                  backgroundColor: addedLeads.has(lead.cnpj || '') ? '#e8f5e9' : 'white'
+                }}
+              >
+                {/* Entidade */}
+                <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                  <strong>{lead.entidade}</strong>
+                  {lead.website && (
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                      <a href={lead.website} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2' }}>
+                        🌐 {lead.website}
+                      </a>
+                    </div>
+                  )}
+                </td>
+                
+                {/* CNPJ */}
+                <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '13px' }}>
+                  {lead.cnpj && lead.cnpj !== 'N/A' ? (
+                    lead.cnpj
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <input
+                        type="text"
+                        placeholder="Inserir CNPJ"
+                        style={{
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          padding: '4px 8px',
+                          fontSize: '12px',
+                          width: '130px',
+                          outline: 'none'
+                        }}
+                        value={lead.cnpj || ''}
+                        onChange={(e) => handleCnpjChange(index, e.target.value)}
+                      />
+                      <a 
+                        href={`https://www.google.com/search?q=${encodeURIComponent(`${lead.entidade} ${lead.localidade} CNPJ caixa escolar conselho escolar`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Pesquisar CNPJ no Google"
+                        style={{
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          filter: 'grayscale(100%)',
+                          transition: 'filter 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.filter = 'none'}
+                        onMouseOut={(e) => e.currentTarget.style.filter = 'grayscale(100%)'}
+                      >
+                        🔍
+                      </a>
+                    </div>
+                  )}
+                </td>
+                
+                {/* Tipo */}
+                <td style={{ padding: '12px' }}>
+                  <span style={{ 
+                    backgroundColor: '#e3f2fd', 
+                    color: '#1565c0', 
+                    padding: '2px 8px', 
+                    borderRadius: '12px',
+                    fontSize: '12px'
+                  }}>
+                    {lead.tipo}
+                  </span>
+                </td>
+                
+                {/* Localidade */}
+                <td style={{ padding: '12px' }}>
+                  {lead.localidade}
+                </td>
+                
+                {/* Contato */}
+                <td style={{ padding: '12px', fontSize: '13px' }}>
+                  {lead.contatoNome && (
+                    <div><strong>{lead.contatoNome}</strong></div>
+                  )}
+                  {lead.contatoCargo && (
+                    <div style={{ color: '#666' }}>{lead.contatoCargo}</div>
+                  )}
+                  {lead.contatoPublico && (
+                    <div style={{ marginTop: '4px' }}>📞 {lead.contatoPublico}</div>
+                  )}
+                  {lead.email && (
+                    <div style={{ marginTop: '4px' }}>📧 {lead.email}</div>
+                  )}
+                </td>
+                
+                {/* Corpo Docente */}
+                <td style={{ padding: '12px', fontSize: '13px', maxWidth: '200px' }}>
+                  {lead.corpoDocente ? (
+                    <div style={{ 
+                      whiteSpace: 'nowrap', 
+                      overflow: 'hidden', 
+                      textOverflow: 'ellipsis',
+                      color: '#2e7d32'
+                    }} title={lead.corpoDocente}>
+                      📚 {lead.corpoDocente.substring(0, 50)}
+                      {lead.corpoDocente.length > 50 && '...'}
+                    </div>
+                  ) : (
+                    <span style={{ color: '#999' }}>N/A</span>
+                  )}
+                </td>
+                
+                {/* Ações */}
+                <td style={{ padding: '12px', textAlign: 'center' }}>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    {/* Botão Detalhes */}
+                    {onDetails && (
+                      <button
+                        onClick={() => onDetails(lead.entidade, lead.localidade)}
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: '#fff',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                        onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                        title="Ver detalhes"
+                      >
+                        👁️
+                      </button>
+                    )}
+                    
+                    {/* Botão Adicionar */}
+                    <button
+                      onClick={() => handleAddClient(lead)}
+                      disabled={!lead.cnpj || addingLead === lead.cnpj || addedLeads.has(lead.cnpj || '')}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: addedLeads.has(lead.cnpj || '') 
+                          ? '#e8f5e9' 
+                          : !lead.cnpj 
+                            ? '#f5f5f5' 
+                            : '#e3f2fd',
+                        color: addedLeads.has(lead.cnpj || '') 
+                          ? '#2e7d32' 
+                          : !lead.cnpj 
+                            ? '#9e9e9e' 
+                            : '#1565c0',
+                        border: '1px solid transparent',
+                        borderColor: addedLeads.has(lead.cnpj || '') 
+                          ? '#c8e6c9' 
+                          : !lead.cnpj 
+                            ? '#e0e0e0' 
+                            : '#bbdefb',
+                        borderRadius: '8px',
+                        cursor: !lead.cnpj || addedLeads.has(lead.cnpj || '') ? 'not-allowed' : 'pointer',
+                        fontSize: '16px',
+                        boxShadow: !lead.cnpj ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                        transition: 'all 0.2s ease',
+                        opacity: addingLead === lead.cnpj ? 0.7 : 1
+                      }}
+                      onMouseOver={(e) => {
+                        if (lead.cnpj && !addedLeads.has(lead.cnpj)) {
+                           e.currentTarget.style.transform = 'translateY(-1px)';
+                           e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = !lead.cnpj ? 'none' : '0 2px 4px rgba(0,0,0,0.05)';
+                      }}
+                      title={
+                        !lead.cnpj 
+                          ? 'Sem CNPJ' 
+                          : addedLeads.has(lead.cnpj) 
+                            ? 'Já adicionado' 
+                            : 'Adicionar como cliente'
+                      }
+                    >
+                      {addingLead === lead.cnpj 
+                        ? '⏳' 
+                        : addedLeads.has(lead.cnpj || '') 
+                          ? '✓' 
+                          : '＋'}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Rodapé com estatísticas */}
+      <div style={{ 
+        marginTop: '16px', 
+        padding: '12px', 
+        backgroundColor: '#f5f5f5', 
+        borderRadius: '4px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: '14px',
+        color: '#666'
+      }}>
+        <span>📊 Total: {leads.length} lead(s)</span>
+        <span>✅ Adicionados: {addedLeads.size}</span>
+        <span>⏳ Pendentes: {leads.length - addedLeads.size}</span>
+      </div>
     </div>
   );
 };

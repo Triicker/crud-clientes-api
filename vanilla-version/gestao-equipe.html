@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Equipe - Sistema de Gestão</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <style>
+        .gestao-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-section h1 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 1.8em;
+        }
+
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            padding: 10px 20px;
+            background: #f1f5f9;
+            color: #475569;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-card.vendas { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .stat-card.usuarios { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .stat-card.clientes { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-card.processo { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .stat-card.acoes { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+        .stat-card.pendentes { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); }
+
+        .stat-card h3 { font-size: 2.2em; margin: 0; }
+        .stat-card p { margin: 5px 0 0; opacity: 0.9; font-size: 0.95em; }
+
+        /* Tabs */
+        .tabs-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn:hover { color: #1e293b; }
+        .tab-btn.active { color: #667eea; }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        /* Filtros */
+        .filters-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.85em;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            min-width: 150px;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Tabela de Usuários */
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .users-table th {
+            background: #f1f5f9;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .users-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .users-table tr:hover { background: #f8fafc; }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .user-name { font-weight: 600; color: #1e293b; }
+        .user-email { font-size: 0.85em; color: #64748b; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .badge.perfil { background: #dbeafe; color: #2563eb; }
+        .badge.vendas { background: #d1fae5; color: #059669; }
+        .badge.processo { background: #fef3c7; color: #d97706; }
+        .badge.sem-acao { background: #fee2e2; color: #dc2626; }
+
+        .metric-value {
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .metric-value.destaque { color: #059669; }
+        .metric-value.alerta { color: #dc2626; }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .action-btn.primary { background: #667eea; color: white; }
+        .action-btn.primary:hover { background: #5a67d8; }
+        .action-btn.secondary { background: #f1f5f9; color: #475569; }
+        .action-btn.secondary:hover { background: #e2e8f0; }
+
+        /* Ranking */
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            gap: 15px;
+        }
+
+        .ranking-position {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .ranking-position.gold { background: linear-gradient(135deg, #ffd700, #ffb800); color: #333; }
+        .ranking-position.silver { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: #333; }
+        .ranking-position.bronze { background: linear-gradient(135deg, #cd7f32, #b5651d); color: white; }
+        .ranking-position.normal { background: #e2e8f0; color: #64748b; }
+
+        .ranking-info { flex: 1; }
+        .ranking-name { font-weight: 600; color: #1e293b; }
+        .ranking-stats { font-size: 0.9em; color: #64748b; }
+        .ranking-value { font-weight: 700; font-size: 1.3em; color: #059669; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .modal-header h2 { margin: 0; color: #1e293b; }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #64748b;
+            padding: 5px;
+        }
+
+        .modal-body { padding: 20px; }
+
+        .user-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .user-detail-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 2em;
+        }
+
+        .user-detail-info h3 { margin: 0 0 5px; color: #1e293b; font-size: 1.4em; }
+        .user-detail-info p { margin: 0; color: #64748b; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .metric-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-box h4 { margin: 0; font-size: 1.8em; color: #1e293b; }
+        .metric-box p { margin: 5px 0 0; font-size: 0.85em; color: #64748b; }
+
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 20px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .observation-card {
+            background: #f8fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .observation-card.feedback { border-color: #10b981; }
+        .observation-card.alerta { border-color: #f59e0b; }
+        .observation-card.importante { border-color: #ef4444; }
+
+        .observation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .observation-author { font-weight: 600; color: #1e293b; }
+        .observation-date { font-size: 0.85em; color: #64748b; }
+        .observation-content { color: #475569; line-height: 1.5; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea { min-height: 100px; resize: vertical; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+        }
+
+        .toast {
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            margin-top: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+        .toast.warning { background: #f59e0b; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .gestao-container { padding: 10px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stat-card h3 { font-size: 1.6em; }
+            .users-table { font-size: 0.8em; }
+            .users-table th, .users-table td { padding: 8px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="gestao-container">
+        <!-- Header -->
+        <div class="header-section">
+            <div class="header-flex">
+                <div>
+                    <h1>👥 Gestão de Equipe</h1>
+                    <p style="color: #64748b; margin: 10px 0 0;">Acompanhe o desempenho e progresso da sua equipe</p>
+                </div>
+                <div class="nav-links">
+                    <a href="index.html">📊 Dashboard</a>
+                    <a href="liberacoes-etapas.html">🔓 Liberações</a>
+                    <a href="comunicacao-equipe.html">💬 Comunicação</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card usuarios">
+                <h3 id="stat-usuarios">-</h3>
+                <p>Usuários Ativos</p>
+            </div>
+            <div class="stat-card vendas">
+                <h3 id="stat-vendas">-</h3>
+                <p>Vendas Fechadas</p>
+            </div>
+            <div class="stat-card clientes">
+                <h3 id="stat-clientes">-</h3>
+                <p>Total Clientes</p>
+            </div>
+            <div class="stat-card processo">
+                <h3 id="stat-processo">-</h3>
+                <p>Em Processo</p>
+            </div>
+            <div class="stat-card acoes">
+                <h3 id="stat-acoes">-</h3>
+                <p>Ações Este Mês</p>
+            </div>
+            <div class="stat-card pendentes">
+                <h3 id="stat-pendentes">-</h3>
+                <p>Liberações Pendentes</p>
+            </div>
+        </div>
+
+        <!-- Tabs Section -->
+        <div class="tabs-section">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="usuarios" onclick="trocarTab('usuarios')">
+                    👤 Usuários
+                </button>
+                <button class="tab-btn" data-tab="ranking" onclick="trocarTab('ranking')">
+                    🏆 Ranking
+                </button>
+                <button class="tab-btn" data-tab="observacoes" onclick="trocarTab('observacoes')">
+                    📝 Observações Recentes
+                </button>
+            </div>
+
+            <!-- Tab: Usuários -->
+            <div id="tab-usuarios" class="tab-content">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label>Perfil</label>
+                        <select id="filtro-perfil" onchange="carregarUsuarios()">
+                            <option value="">Todos os perfis</option>
+                            <option value="consultor">Consultor</option>
+                            <option value="representante">Representante</option>
+                            <option value="equipe_interna">Equipe Interna</option>
+                            <option value="diretor_comercial">Diretor Comercial</option>
+                            <option value="administrador">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Ordenar por</label>
+                        <select id="filtro-ordenar" onchange="carregarUsuarios()">
+                            <option value="nome">Nome</option>
+                            <option value="vendas">Mais Vendas</option>
+                            <option value="clientes">Mais Clientes</option>
+                            <option value="atividade">Atividade Recente</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Buscar</label>
+                        <input type="text" id="filtro-busca" placeholder="Nome ou email..." oninput="filtrarTabela()">
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="users-table" id="usuarios-table">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Perfil</th>
+                                <th>Clientes</th>
+                                <th>Vendas</th>
+                                <th>Em Processo</th>
+                                <th>Ações/Mês</th>
+                                <th>Última Atividade</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuarios-tbody">
+                            <tr><td colspan="8" style="text-align: center; padding: 40px;">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Ranking -->
+            <div id="tab-ranking" class="tab-content" style="display: none;">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label>Período</label>
+                        <select id="filtro-periodo" onchange="carregarRanking()">
+                            <option value="mes">Este Mês</option>
+                            <option value="trimestre">Último Trimestre</option>
+                            <option value="ano">Este Ano</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ranking-list" id="ranking-list">
+                    <p style="text-align: center; color: #64748b;">Carregando ranking...</p>
+                </div>
+            </div>
+
+            <!-- Tab: Observações -->
+            <div id="tab-observacoes" class="tab-content" style="display: none;">
+                <div id="observacoes-recentes">
+                    <p style="text-align: center; color: #64748b;">Carregando observações...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Usuário -->
+    <div class="modal-overlay" id="modal-usuario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalhes do Usuário</h2>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body-usuario">
+                <!-- Conteúdo dinâmico -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Nova Observação -->
+    <div class="modal-overlay" id="modal-observacao">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Nova Observação</h2>
+                <button class="modal-close" onclick="fecharModalObservacao()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-observacao" onsubmit="salvarObservacao(event)">
+                    <input type="hidden" id="obs-usuario-id">
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <select id="obs-tipo" required>
+                            <option value="observacao">Observação Geral</option>
+                            <option value="feedback">Feedback Positivo</option>
+                            <option value="alerta">Alerta/Atenção</option>
+                            <option value="importante">Importante</option>
+                            <option value="meta">Sobre Metas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Título (opcional)</label>
+                        <input type="text" id="obs-titulo" placeholder="Título da observação">
+                    </div>
+                    <div class="form-group">
+                        <label>Conteúdo *</label>
+                        <textarea id="obs-conteudo" placeholder="Escreva sua observação..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="obs-visivel"> Visível para o usuário
+                        </label>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="action-btn secondary" onclick="fecharModalObservacao()">Cancelar</button>
+                        <button type="submit" class="action-btn primary">Salvar Observação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="auth-manager.js"></script>
+    <script>
+        // Estado
+        let todosUsuarios = [];
+        let tabAtiva = 'usuarios';
+        let usuarioSelecionado = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            verificarAutenticacao();
+            carregarEstatisticas();
+            carregarUsuarios();
+        });
+
+        function verificarAutenticacao() {
+            if (!authManager.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+        }
+
+        async function carregarEstatisticas() {
+            try {
+                const response = await fetch('/api/equipe/estatisticas', {
+                    headers: { 'Authorization': `Bearer ${authManager.getToken()}` }
+                });
+                
+                if (!response.ok) throw new Error('Erro ao carregar estatísticas');
+                
+                const data = await response.json();
+                const stats = data.stats;
+
+                document.getElementById('stat-usuarios').textContent = stats.total_usuarios || 0;
+                document.getElementById('stat-vendas').textContent = stats.vendas_total || 0;
+                document.getElementById('stat-clientes').textContent = stats.total_clientes || 0;
+                document.getElementById('stat-processo').textContent = 
+                    (stats.total_clientes - stats.vendas_total) || 0;
+                document.getElementById('stat-acoes').textContent = stats.acoes_mes || 0;
+                document.getElementById('stat-pendentes').textContent = stats.liberacoes_pendentes || 0;
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        async function carregarUsuarios() {
+            try {
+                const perfil = document.getElementById('filtro-perfil').value;
+                const ordenar = document.getElementById('filtro-ordenar').value;
+                
+                let url = `/api/equipe/usuarios?ordenar=${ordenar}`;
+                if (perfil) url += `&perfil=${perfil}`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${authManager.getToken()}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar usuários');
+
+                const data = await response.json();
+                todosUsuarios = data.usuarios;
+                renderizarUsuarios(todosUsuarios);
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('usuarios-tbody').innerHTML = 
+                    '<tr><td colspan="8" style="text-align: center; padding: 40px; color: red;">Erro ao carregar usuários</td></tr>';
+            }
+        }
+
+        function renderizarUsuarios(usuarios) {
+            const tbody = document.getElementById('usuarios-tbody');
+
+            if (usuarios.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Nenhum usuário encontrado</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = usuarios.map(u => {
+                const iniciais = u.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const ultimaAtividade = u.ultima_atividade 
+                    ? new Date(u.ultima_atividade).toLocaleDateString('pt-BR')
+                    : 'Nunca';
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">${iniciais}</div>
+                                <div>
+                                    <div class="user-name">${u.nome}</div>
+                                    <div class="user-email">${u.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge perfil">${u.perfil}</span></td>
+                        <td><span class="metric-value">${u.total_clientes}</span></td>
+                        <td><span class="metric-value destaque">${u.vendas_fechadas}</span></td>
+                        <td><span class="badge processo">${u.clientes_em_processo}</span></td>
+                        <td>${u.acoes_mes_atual}</td>
+                        <td>${ultimaAtividade}</td>
+                        <td>
+                            <button class="action-btn primary" onclick="verDetalhes(${u.id})">
+                                Ver Detalhes
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filtrarTabela() {
+            const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const filtrados = todosUsuarios.filter(u => 
+                u.nome.toLowerCase().includes(busca) || 
+                u.email.toLowerCase().includes(busca)
+            );
+            renderizarUsuarios(filtrados);
+        }
+
+        function trocarTab(tab) {
+            tabAtiva = tab;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            document.getElementById(`tab-${tab}`).style.display = 'block';
+
+            if (tab === 'ranking') carregarRanking();
+            if (tab === 'observacoes') carregarObservacoesRecentes();
+        }
+
+        async function carregarRanking() {
+            try {
+                const periodo = document.getElementById('filtro-periodo').value;
+                const response = await fetch(`/api/equipe/ranking?periodo=${periodo}`, {
+                    headers: { 'Authorization': `Bearer ${authManager.getToken()}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar ranking');
+
+                const data = await response.json();
+                renderizarRanking(data.ranking);
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        function renderizarRanking(ranking) {
+            const container = document.getElementById('ranking-list');
+
+            if (ranking.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #64748b;">Nenhum vendedor encontrado</p>';
+                return;
+            }
+
+            container.innerHTML = ranking.map((r, idx) => {
+                let posicaoClass = 'normal';
+                if (idx === 0) posicaoClass = 'gold';
+                else if (idx === 1) posicaoClass = 'silver';
+                else if (idx === 2) posicaoClass = 'bronze';
+
+                return `
+                    <div class="ranking-item">
+                        <div class="ranking-position ${posicaoClass}">${r.posicao}º</div>
+                        <div class="ranking-info">
+                            <div class="ranking-name">${r.nome}</div>
+                            <div class="ranking-stats">
+                                ${r.total_clientes} clientes | 
+                                Meta: ${r.meta_vendas_mensal || 'Não definida'} | 
+                                ${r.percentual_meta}% da meta
+                            </div>
+                        </div>
+                        <div class="ranking-value">${r.vendas_periodo} vendas</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function carregarObservacoesRecentes() {
+            // TODO: Implementar endpoint para observações recentes de todos os usuários
+            document.getElementById('observacoes-recentes').innerHTML = 
+                '<p style="text-align: center; color: #64748b;">Clique em "Ver Detalhes" de um usuário para ver suas observações.</p>';
+        }
+
+        async function verDetalhes(usuarioId) {
+            try {
+                const response = await fetch(`/api/equipe/usuarios/${usuarioId}`, {
+                    headers: { 'Authorization': `Bearer ${authManager.getToken()}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar detalhes');
+
+                const data = await response.json();
+                usuarioSelecionado = data;
+                renderizarModalUsuario(data);
+                document.getElementById('modal-usuario').classList.add('active');
+            } catch (error) {
+                console.error('Erro:', error);
+                showToast('error', 'Erro ao carregar detalhes do usuário');
+            }
+        }
+
+        function renderizarModalUsuario(data) {
+            const { usuario, metricas, clientes, atividades, observacoes } = data;
+            const iniciais = usuario.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+            const modalBody = document.getElementById('modal-body-usuario');
+            modalBody.innerHTML = `
+                <div class="user-detail-header">
+                    <div class="user-detail-avatar">${iniciais}</div>
+                    <div class="user-detail-info">
+                        <h3>${usuario.nome}</h3>
+                        <p>${usuario.email}</p>
+                        <span class="badge perfil">${usuario.perfil}</span>
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <h4>${metricas.clientes.total}</h4>
+                        <p>Total Clientes</p>
+                    </div>
+                    <div class="metric-box" style="background: #d1fae5;">
+                        <h4>${metricas.clientes.vendas_fechadas}</h4>
+                        <p>Vendas Fechadas</p>
+                    </div>
+                    <div class="metric-box" style="background: #fef3c7;">
+                        <h4>${metricas.clientes.em_processo}</h4>
+                        <p>Em Processo</p>
+                    </div>
+                    <div class="metric-box" style="background: #fee2e2;">
+                        <h4>${metricas.clientes.sem_acao}</h4>
+                        <p>Sem Ação</p>
+                    </div>
+                </div>
+
+                <!-- Meta de Vendas -->
+                <div class="form-group">
+                    <label>Meta de Vendas Mensal</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="meta-vendas" value="${usuario.meta_vendas_mensal || 0}" style="width: 100px;">
+                        <button class="action-btn primary" onclick="atualizarMeta(${usuario.id})">Salvar Meta</button>
+                    </div>
+                </div>
+
+                <!-- Observação Geral -->
+                <div class="form-group">
+                    <label>Observação Geral do Usuário</label>
+                    <textarea id="obs-geral" placeholder="Observação geral sobre o usuário...">${usuario.observacao_geral || ''}</textarea>
+                    <button class="action-btn secondary" onclick="atualizarObservacaoGeral(${usuario.id})" style="margin-top: 10px;">
+                        Salvar Observação Geral
+                    </button>
+                </div>
+
+                <!-- Observações -->
+                <div class="section-title">
+                    📝 Observações
+                    <button class="action-btn primary" style="float: right; font-size: 0.85em;" onclick="abrirModalObservacao(${usuario.id})">
+                        + Nova Observação
+                    </button>
+                </div>
+
+                <div id="lista-observacoes">
+                    ${observacoes.length === 0 ? '<p style="color: #64748b; text-align: center;">Nenhuma observação registrada</p>' : 
+                        observacoes.map(obs => `
+                            <div class="observation-card ${obs.tipo}">
+                                <div class="observation-header">
+                                    <span class="observation-author">👤 ${obs.autor_nome}</span>
+                                    <span class="observation-date">${new Date(obs.criado_em).toLocaleString('pt-BR')}</span>
+                                </div>
+                                ${obs.titulo ? `<strong>${obs.titulo}</strong><br>` : ''}
+                                <div class="observation-content">${obs.conteudo}</div>
+                            </div>
+                        `).join('')
+                    }
+                </div>
+
+                <!-- Atividades Recentes -->
+                <div class="section-title">📊 Atividades Recentes</div>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    ${atividades.slice(0, 20).map(a => `
+                        <div style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.9em;">
+                            <strong>${a.cliente_nome || 'Cliente'}</strong> - ${a.etapa_id} - ${a.acao}
+                            <br><span style="color: #64748b; font-size: 0.85em;">${new Date(a.data_hora).toLocaleString('pt-BR')}</span>
+                        </div>
+                    `).join('') || '<p style="color: #64748b; text-align: center;">Nenhuma atividade registrada</p>'}
+                </div>
+            `;
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-usuario').classList.remove('active');
+            usuarioSelecionado = null;
+        }
+
+        function abrirModalObservacao(usuarioId) {
+            document.getElementById('obs-usuario-id').value = usuarioId;
+            document.getElementById('form-observacao').reset();
+            document.getElementById('modal-observacao').classList.add('active');
+        }
+
+        function fecharModalObservacao() {
+            document.getElementById('modal-observacao').classList.remove('active');
+        }
+
+        async function salvarObservacao(event) {
+            event.preventDefault();
+
+            const data = {
+                usuario_id: parseInt(document.getElementById('obs-usuario-id').value),
+                tipo: document.getElementById('obs-tipo').value,
+                titulo: document.getElementById('obs-titulo').value,
+                conteudo: document.getElementById('obs-conteudo').value,
+                visivel_usuario: document.getElementById('obs-visivel').checked
+            };
+
+            try {
+                const response = await fetch('/api/equipe/observacoes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authManager.getToken()}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error('Erro ao salvar observação');
+
+                showToast('success', 'Observação salva com sucesso!');
+                fecharModalObservacao();
+
+                // Recarregar detalhes do usuário
+                if (usuarioSelecionado) {
+                    verDetalhes(data.usuario_id);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showToast('error', 'Erro ao salvar observação');
+            }
+        }
+
+        async function atualizarMeta(usuarioId) {
+            const meta = parseInt(document.getElementById('meta-vendas').value) || 0;
+
+            try {
+                const response = await fetch(`/api/equipe/usuarios/${usuarioId}/meta`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authManager.getToken()}`
+                    },
+                    body: JSON.stringify({ meta_vendas_mensal: meta })
+                });
+
+                if (!response.ok) throw new Error('Erro ao atualizar meta');
+
+                showToast('success', 'Meta atualizada com sucesso!');
+            } catch (error) {
+                console.error('Erro:', error);
+                showToast('error', 'Erro ao atualizar meta');
+            }
+        }
+
+        async function atualizarObservacaoGeral(usuarioId) {
+            const observacao = document.getElementById('obs-geral').value;
+
+            try {
+                const response = await fetch(`/api/equipe/usuarios/${usuarioId}/observacao-geral`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authManager.getToken()}`
+                    },
+                    body: JSON.stringify({ observacao_geral: observacao })
+                });
+
+                if (!response.ok) throw new Error('Erro ao atualizar');
+
+                showToast('success', 'Observação geral atualizada!');
+            } catch (error) {
+                console.error('Erro:', error);
+                showToast('error', 'Erro ao atualizar observação');
+            }
+        }
+
+        function showToast(type, message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

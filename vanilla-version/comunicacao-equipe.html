@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunicação da Equipe - Sistema de Gestão</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <style>
+        .communication-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card.pendentes { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-card.em-andamento { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .stat-card.concluidas { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .stat-card.tarefas { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin: 0;
+        }
+
+        .stat-card p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+        }
+
+        .filters-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .communications-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .communications-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .communication-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .communication-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .communication-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .communication-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .communication-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-baixa { background: #d1fae5; color: #065f46; }
+        .priority-media { background: #fef3c7; color: #92400e; }
+        .priority-alta { background: #fed7d7; color: #c53030; }
+        .priority-urgente { background: #fecaca; color: #991b1b; }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pendente { background: #fef3c7; color: #92400e; }
+        .status-em_andamento { background: #dbeafe; color: #1e40af; }
+        .status-concluida { background: #d1fae5; color: #065f46; }
+        .status-cancelada { background: #fee2e2; color: #dc2626; }
+
+        .communication-content {
+            margin-bottom: 15px;
+        }
+
+        .communication-description {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .communication-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loading::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #374151;
+        }
+
+        .back-button {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #4b5563;
+        }
+
+        @media (max-width: 768px) {
+            .communication-container {
+                padding: 10px;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .communication-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .communication-meta {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="communication-container">
+        <!-- Header com botão de voltar -->
+        <button class="back-button" onclick="window.location.href='/index.html'">
+            ← Voltar ao Dashboard
+        </button>
+
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 style="margin: 0 0 20px; color: #1f2937; font-size: 2em;">Comunicação da Equipe</h1>
+            
+            <!-- Dashboard Stats -->
+            <div class="stats-grid" id="stats-grid">
+                <!-- Stats serão carregadas via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <h2 style="margin: 0 0 20px; color: #374151;">Filtros</h2>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label>Tipo</label>
+                    <select id="filter-tipo">
+                        <option value="">Todos os tipos</option>
+                        <option value="comentario">Comentários</option>
+                        <option value="tarefa">Tarefas</option>
+                        <option value="validacao">Validações</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select id="filter-status">
+                        <option value="">Todos os status</option>
+                        <option value="pendente">Pendente</option>
+                        <option value="em_andamento">Em Andamento</option>
+                        <option value="concluida">Concluída</option>
+                        <option value="cancelada">Cancelada</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Prioridade</label>
+                    <select id="filter-prioridade">
+                        <option value="">Todas as prioridades</option>
+                        <option value="baixa">Baixa</option>
+                        <option value="media">Média</option>
+                        <option value="alta">Alta</option>
+                        <option value="urgente">Urgente</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Cliente</label>
+                    <select id="filter-cliente">
+                        <option value="">Todos os clientes</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button class="btn-primary" onclick="aplicarFiltros()">Aplicar Filtros</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Communications Section -->
+        <div class="communications-section">
+            <div class="section-header">
+                <h2 style="margin: 0; color: #374151;">Comunicações</h2>
+                <button class="btn-primary" onclick="abrirModalNovaComunicacao()">
+                    + Nova Comunicação
+                </button>
+            </div>
+            
+            <div class="communications-grid" id="communications-grid">
+                <!-- Comunicações serão carregadas via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nova Comunicação -->
+    <div class="modal" id="modal-nova-comunicacao">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova Comunicação</h2>
+                <button class="close-btn" onclick="fecharModal('modal-nova-comunicacao')">&times;</button>
+            </div>
+            
+            <form id="form-nova-comunicacao" onsubmit="criarComunicacao(event)">
+                <div class="form-grid">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo *</label>
+                            <select name="tipo" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="comentario">Comentário</option>
+                                <option value="tarefa">Tarefa</option>
+                                <option value="validacao">Validação</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Prioridade</label>
+                            <select name="prioridade">
+                                <option value="baixa">Baixa</option>
+                                <option value="media" selected>Média</option>
+                                <option value="alta">Alta</option>
+                                <option value="urgente">Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cliente *</label>
+                            <select name="cliente_id" id="select-cliente" required>
+                                <option value="">Selecione o cliente</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Destinatário *</label>
+                            <select name="usuario_destinatario_id" id="select-destinatario" required>
+                                <option value="">Selecione o usuário</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Título *</label>
+                        <input type="text" name="titulo" required placeholder="Digite o título da comunicação">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea name="descricao" placeholder="Digite a descrição detalhada"></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Etapa Relacionada</label>
+                            <select name="etapa_relacionada">
+                                <option value="">Nenhuma etapa específica</option>
+                                <option value="Prospecção">Prospecção</option>
+                                <option value="Apresentação">Apresentação</option>
+                                <option value="Negociação">Negociação</option>
+                                <option value="Fechamento">Fechamento</option>
+                                <option value="Pós-venda">Pós-venda</option>
+                                <option value="Renovação">Renovação</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Prazo</label>
+                            <input type="datetime-local" name="data_prazo">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="fecharModal('modal-nova-comunicacao')">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary" id="btn-criar-comunicacao">
+                        Criar Comunicação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="auth-manager.js"></script>
+    <script src="api-client.js"></script>
+    <script>
+        // Dados globais
+        let comunicacoes = [];
+        let usuarios = [];
+        let clientes = [];
+        let dashboard = {};
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Verificar autenticação
+                const isAuthenticated = await authManager.checkAuthentication();
+                if (!isAuthenticated) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                // Carregar dados
+                await carregarDados();
+                await carregarDashboard();
+                await carregarComunicacoes();
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                alert('Erro ao carregar a página. Tente novamente.');
+            }
+        });
+
+        // Carregar dados básicos (usuários e clientes)
+        async function carregarDados() {
+            try {
+                // Carregar usuários (endpoint sem /api - baseURL já inclui)
+                console.log('📋 Carregando dados...');
+                const responseUsuarios = await apiClient.get('/comunicacao/usuarios');
+                usuarios = responseUsuarios.usuarios || [];
+                console.log('✅ Usuários carregados:', usuarios.length);
+                
+                // Carregar clientes (API retorna array diretamente)
+                const responseClientes = await apiClient.get('/clientes');
+                console.log('📦 Response clientes:', responseClientes);
+                clientes = Array.isArray(responseClientes) ? responseClientes : (responseClientes.clientes || []);
+                console.log('✅ Clientes carregados:', clientes.length);
+
+                // Preencher selects
+                preencherSelectClientes();
+                preencherSelectUsuarios();
+                console.log('✅ Selects preenchidos');
+            } catch (error) {
+                console.error('❌ Erro ao carregar dados:', error);
+            }
+        }
+
+        // Carregar dashboard
+        async function carregarDashboard() {
+            try {
+                const response = await apiClient.get('/comunicacao/dashboard');
+                dashboard = response;
+                renderizarStats();
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+            }
+        }
+
+        // Carregar comunicações
+        async function carregarComunicacoes() {
+            try {
+                const response = await apiClient.get('/comunicacao/minhas?limit=50');
+                comunicacoes = response.comunicacoes || [];
+                renderizarComunicacoes();
+            } catch (error) {
+                console.error('Erro ao carregar comunicações:', error);
+            }
+        }
+
+        // Renderizar estatísticas
+        function renderizarStats() {
+            const statsGrid = document.getElementById('stats-grid');
+            const stats = dashboard.estatisticas || {};
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <h3>${stats.total || 0}</h3>
+                    <p>Total de Comunicações</p>
+                </div>
+                <div class="stat-card pendentes">
+                    <h3>${stats.pendentes || 0}</h3>
+                    <p>Pendentes</p>
+                </div>
+                <div class="stat-card em-andamento">
+                    <h3>${stats.em_andamento || 0}</h3>
+                    <p>Em Andamento</p>
+                </div>
+                <div class="stat-card concluidas">
+                    <h3>${stats.concluidas || 0}</h3>
+                    <p>Concluídas</p>
+                </div>
+                <div class="stat-card tarefas">
+                    <h3>${stats.tarefas || 0}</h3>
+                    <p>Tarefas</p>
+                </div>
+            `;
+        }
+
+        // Renderizar comunicações
+        function renderizarComunicacoes() {
+            const grid = document.getElementById('communications-grid');
+            
+            if (comunicacoes.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nenhuma comunicação encontrada</h3>
+                        <p>Crie uma nova comunicação para começar!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = comunicacoes.map(comunicacao => `
+                <div class="communication-card">
+                    <div class="communication-header">
+                        <h3 class="communication-title">${comunicacao.titulo}</h3>
+                        <div class="communication-meta">
+                            <span class="priority-badge priority-${comunicacao.prioridade}">
+                                ${comunicacao.prioridade}
+                            </span>
+                            <span class="status-badge status-${comunicacao.status}">
+                                ${comunicacao.status.replace('_', ' ')}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="communication-content">
+                        <p class="communication-description">
+                            ${comunicacao.descricao || 'Sem descrição'}
+                        </p>
+                        <div style="margin-top: 10px; font-size: 14px; color: #6b7280;">
+                            <strong>Cliente:</strong> ${comunicacao.cliente_nome || 'N/A'}<br>
+                            <strong>Tipo:</strong> ${comunicacao.tipo}<br>
+                            ${comunicacao.etapa_relacionada ? `<strong>Etapa:</strong> ${comunicacao.etapa_relacionada}<br>` : ''}
+                            ${comunicacao.data_prazo ? `<strong>Prazo:</strong> ${formatarData(comunicacao.data_prazo)}` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="communication-footer">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                ${(comunicacao.remetente_nome || '').charAt(0).toUpperCase()}
+                            </div>
+                            <span>
+                                <strong>De:</strong> ${comunicacao.remetente_nome || 'N/A'} → 
+                                <strong>Para:</strong> ${comunicacao.destinatario_nome || 'N/A'}
+                            </span>
+                        </div>
+                        <span>${formatarData(comunicacao.data_criacao)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Preencher select de clientes
+        function preencherSelectClientes() {
+            const selectCliente = document.getElementById('select-cliente');
+            const filterCliente = document.getElementById('filter-cliente');
+            
+            const options = clientes.map(cliente => 
+                `<option value="${cliente.id}">${cliente.nome}</option>`
+            ).join('');
+            
+            selectCliente.innerHTML = '<option value="">Selecione o cliente</option>' + options;
+            filterCliente.innerHTML = '<option value="">Todos os clientes</option>' + options;
+        }
+
+        // Preencher select de usuários
+        function preencherSelectUsuarios() {
+            const selectDestinatario = document.getElementById('select-destinatario');
+            
+            const options = usuarios.map(usuario => 
+                `<option value="${usuario.id}">${usuario.nome} (${usuario.perfil_nome || 'N/A'})</option>`
+            ).join('');
+            
+            selectDestinatario.innerHTML = '<option value="">Selecione o usuário</option>' + options;
+        }
+
+        // Abrir modal nova comunicação
+        function abrirModalNovaComunicacao() {
+            document.getElementById('modal-nova-comunicacao').classList.add('active');
+        }
+
+        // Fechar modal
+        function fecharModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'modal-nova-comunicacao') {
+                document.getElementById('form-nova-comunicacao').reset();
+            }
+        }
+
+        // Criar comunicação
+        async function criarComunicacao(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            const btnCriar = document.getElementById('btn-criar-comunicacao');
+            btnCriar.innerHTML = '<span class="loading">Criando...</span>';
+            btnCriar.disabled = true;
+            
+            try {
+                await apiClient.post('/comunicacao', data);
+                alert('Comunicação criada com sucesso!');
+                fecharModal('modal-nova-comunicacao');
+                await carregarComunicacoes();
+                await carregarDashboard();
+            } catch (error) {
+                console.error('Erro ao criar comunicação:', error);
+                alert('Erro ao criar comunicação. Tente novamente.');
+            } finally {
+                btnCriar.innerHTML = 'Criar Comunicação';
+                btnCriar.disabled = false;
+            }
+        }
+
+        // Aplicar filtros
+        async function aplicarFiltros() {
+            try {
+                const tipo = document.getElementById('filter-tipo').value;
+                const status = document.getElementById('filter-status').value;
+                const clienteId = document.getElementById('filter-cliente').value;
+                
+                const params = new URLSearchParams();
+                if (tipo) params.append('tipo', tipo);
+                if (status) params.append('status', status);
+                if (clienteId) params.append('cliente_id', clienteId);
+                params.append('limit', '50');
+                
+                const response = await apiClient.get(`/comunicacao/minhas?${params.toString()}`);
+                comunicacoes = response.comunicacoes || [];
+                renderizarComunicacoes();
+            } catch (error) {
+                console.error('Erro ao aplicar filtros:', error);
+            }
+        }
+
+        // Formatação de data
+        function formatarData(dataString) {
+            if (!dataString) return 'N/A';
+            const data = new Date(dataString);
+            return data.toLocaleString('pt-BR');
+        }
+
+        // Event listeners para filtros
+        document.addEventListener('change', (e) => {
+            if (e.target.id.startsWith('filter-')) {
+                aplicarFiltros();
+            }
+        });
+
+        // Fechar modal ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -7,6 +7,36 @@ exports.createInteracao = async (req, res) => {
   const { cliente_id, tipo, descricao, usuario_responsavel } = req.body;
 
   try {
+    // LÓGICA DE ATRIBUIÇÃO AUTOMÁTICA DE VENDEDOR
+    // Buscar cliente para verificar se está em Prospecção sem vendedor
+    const clienteResult = await pool.query(
+        'SELECT id, nome, status, vendedor_responsavel FROM clientes WHERE id = $1',
+        [cliente_id]
+    );
+    
+    if (clienteResult.rows.length === 0) {
+        return res.status(404).json({ erro: 'Cliente não encontrado' });
+    }
+    
+    const cliente = clienteResult.rows[0];
+    
+    // Se é a primeira interação (cliente em Prospecção sem vendedor)
+    if (cliente.status === 'Prospecção' && !cliente.vendedor_responsavel) {
+        // Determinar quem será o vendedor
+        const vendedor = usuario_responsavel || (req.user ? req.user.nome : null);
+        
+        if (vendedor) {
+            // Atribuir vendedor e mover para "Contato Inicial"
+            await pool.query(
+                `UPDATE clientes 
+                 SET vendedor_responsavel = $1, status = 'Contato Inicial' 
+                 WHERE id = $2`,
+                [vendedor, cliente_id]
+            );
+            
+            console.log(`✓ Cliente "${cliente.nome}" movido para "Contato Inicial" e atribuído a ${vendedor}`);
+        }
+    }
     const query = `
       INSERT INTO interacoes (cliente_id, tipo, descricao, usuario_responsavel)
       VALUES ($1, $2, $3, $4)

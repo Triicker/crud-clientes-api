@@ -7,6 +7,8 @@
 const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const responseFormatter = require('../utils/responseFormatter');
+const logger = require('../utils/logger');
 
 // A chave secreta é carregada do ambiente (.env)
 const JWT_SECRET = process.env.JWT_SECRET; 
@@ -27,7 +29,7 @@ exports.login = async (req, res) => {
 
         if (result.rows.length === 0) {
             // Mensagem genérica para segurança
-            return res.status(401).json({ mensagem: 'Credenciais inválidas.' });
+            return res.status(401).json(responseFormatter.unauthorized('Credenciais inválidas'));
         }
 
         const usuario = result.rows[0];
@@ -36,14 +38,16 @@ exports.login = async (req, res) => {
         const senhaCorreta = await bcrypt.compare(senha, usuario.senha_hash);
 
         if (!senhaCorreta) {
-            return res.status(401).json({ mensagem: 'Credenciais inválidas.' });
+            return res.status(401).json(responseFormatter.unauthorized('Credenciais inválidas'));
         }
 
         // 3. GERAR O JSON WEB TOKEN (JWT)
         const token = jwt.sign(
             { 
                 id: usuario.id, 
+                nome: usuario.nome,
                 email: usuario.email, 
+                perfil_id: usuario.perfil_id,
                 perfil: usuario.perfil_nome 
             }, 
             JWT_SECRET, 
@@ -56,14 +60,14 @@ exports.login = async (req, res) => {
         // Removemos o hash antes de enviar a resposta
         delete usuario.senha_hash; 
 
-        res.status(200).json({
-            mensagem: 'Login realizado com sucesso!',
+        logger.info('Login realizado com sucesso', { usuarioId: usuario.id, email: usuario.email });
+        res.status(200).json(responseFormatter.success({
             token: token,
             usuario: usuario
-        });
+        }, 'Login realizado com sucesso'));
 
     } catch (error) {
-        console.error('Erro durante o login:', error);
-        res.status(500).json({ erro: 'Erro interno do servidor durante o processo de autenticação.' });
+        logger.error('Erro durante o login', error);
+        res.status(500).json(responseFormatter.error('Erro interno do servidor durante o processo de autenticação'));
     }
 };

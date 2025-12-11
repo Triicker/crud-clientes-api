@@ -27,6 +27,10 @@
                     </div>
                 </div>
                 <div class="user-actions">
+                    <button id="createUserButton" class="create-user-button" style="display: none;" title="Cadastrar Novo Usuário">
+                        <i data-lucide="user-plus" class="menu-icon"></i>
+                        <span>Novo Usuário</span>
+                    </button>
                     <button id="userMenuButton" class="user-menu-button">
                         <i data-lucide="settings" class="menu-icon"></i>
                     </button>
@@ -44,6 +48,22 @@
                     <div class="menu-item" id="userStats">
                         <i data-lucide="bar-chart-3" class="menu-item-icon"></i>
                         <span>Estatísticas</span>
+                    </div>
+                    <div class="menu-item" id="comunicacaoEquipe">
+                        <i data-lucide="message-square" class="menu-item-icon"></i>
+                        <span>Comunicação da Equipe</span>
+                    </div>
+                    <div class="menu-item" id="liberacoesEtapas" style="display: none;">
+                        <i data-lucide="unlock" class="menu-item-icon"></i>
+                        <span>Liberações de Etapas</span>
+                    </div>
+                    <div class="menu-item" id="gestaoVendedores" style="display: none;">
+                        <i data-lucide="trending-up" class="menu-item-icon"></i>
+                        <span>Gestão de Vendedores</span>
+                    </div>
+                    <div class="menu-item" id="gestaoEquipe" style="display: none;">
+                        <i data-lucide="users" class="menu-item-icon"></i>
+                        <span>Gestão de Equipe</span>
                     </div>
                     <div class="menu-divider"></div>
                     <div class="menu-item" id="logoutFromMenu">
@@ -123,7 +143,7 @@
                     <span id="resultsCount">Carregando...</span>
                     <span id="totalCount"></span>
                 </div>
-                <div style="display: flex; gap: 0.75rem;">
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                     <button id="searchGeminiButton" class="btn-add-client" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
                         <i data-lucide="sparkles"></i>
                         <span>Pesquisar Clientes</span>
@@ -131,6 +151,10 @@
                     <button id="searchContractsButton" class="btn-add-client" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                         <i data-lucide="search"></i>
                         <span>Pesquisar Contratos</span>
+                    </button>
+                    <button id="gestaoVendedoresBtn" class="btn-add-client" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: none;">
+                        <i data-lucide="trending-up"></i>
+                        <span>Gestão Vendedores</span>
                     </button>
                     <button id="addClientButton" class="btn-add-client">
                         <i data-lucide="plus-circle"></i>
@@ -155,16 +179,34 @@
             <p>Tente ajustar os filtros ou termos de busca</p>
         </div>
 
-        <!-- Client Table -->
-        <section class="table-section" id="tableSection" style="display: none;">
-            <!-- Botão de Novo Envio -->
+
+
+        <!-- Legenda das etapas do funil/esteira -->
+        <div id="esteira-legend" style="display:flex;align-items:center;gap:32px;margin-bottom:16px;margin-top:8px;justify-content:center;">
+            <!-- Bolinhas das etapas, preenchidas via JS -->
+        </div>
+
+
+        <!-- Botão sanfona para mostrar/esconder tabela de processos -->
+        <div style="display:flex;justify-content:center;margin-bottom:8px;">
+            <button id="toggleEsteiraProcessos" style="background:#6d28d9;color:#fff;padding:8px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600;box-shadow:0 1px 4px #0001;">
+                Mostrar Processos
+            </button>
+        </div>
+
+        <!-- Section exclusiva para tabela de processos do funil/esteira -->
+        <section class="table-section" id="esteiraProcessosSection" style="display:none; margin-bottom:32px;">
+            <div id="esteira-processos" style="margin-bottom:24px;"></div>
+        </section>
+
+        <!-- Section exclusiva para tabela de clientes -->
+        <section class="table-section" id="tableSection" style="display: none; margin-top:40px;">
             <div class="bulk-actions-container">
                 <button id="bulkSendButton" class="bulk-send-button">
                     <i data-lucide="send"></i>
                     <span>+ Novo Envio</span>
                 </button>
             </div>
-
             <div class="table-container">
                 <table class="client-table" id="clientTable">
                     <thead>
@@ -205,6 +247,12 @@
                                     <i data-lucide="chevron-up-down" class="sort-icon"></i>
                                 </button>
                             </th>
+                            <th class="th-vendedor" scope="col">
+                                <button class="sort-button" data-column="vendedor">
+                                    Vendedor
+                                    <i data-lucide="chevron-up-down" class="sort-icon"></i>
+                                </button>
+                            </th>
                             <th class="th-actions" scope="col">Ações</th>
                             <th class="th-checkbox checkbox-cell" scope="col">
                                 <span 
@@ -229,6 +277,7 @@
                 </table>
             </div>
         </section>
+        
 
         <!-- Pagination -->
         <section class="pagination-section" id="paginationSection" style="display: none;">
@@ -771,6 +820,58 @@
         <span>Enviar para <span class="selected-count-badge" id="selectedCountBadge">0</span></span>
     </button>
 
+    <!-- Modal de Cadastro de Usuário -->
+    <div id="createUserModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content create-user-modal-content">
+            <div class="modal-header">
+                <h2>Cadastrar Novo Usuário</h2>
+                <button class="close-btn" id="closeCreateUserModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="edit-modal-body">
+                    <form id="createUserForm" class="edit-form">
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i data-lucide="user" class="section-icon"></i>
+                                Informações Básicas
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label for="newUserName">Nome Completo *</label>
+                                    <input type="text" id="newUserName" class="form-input" required placeholder="Ex: João Silva">
+                                </div>
+                                <div class="form-group">
+                                    <label for="newUserEmail">Email *</label>
+                                    <input type="email" id="newUserEmail" class="form-input" required placeholder="joao@exemplo.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="newUserPassword">Senha *</label>
+                                    <input type="password" id="newUserPassword" class="form-input" required minlength="6" placeholder="Mínimo 6 caracteres">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="newUserPerfil">Perfil *</label>
+                                    <select id="newUserPerfil" class="form-select" required>
+                                        <option value="">Selecione um perfil</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="form-info">* Campos obrigatórios</span>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelCreateUser">Cancelar</button>
+                    <button type="submit" form="createUserForm" class="btn btn-primary">
+                        <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+                        Cadastrar Usuário
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="auth-manager.js"></script>
     <script src="ibge-api.js"></script>
@@ -790,6 +891,19 @@
         document.getElementById('searchGeminiButton')?.addEventListener('click', () => {
             window.location.href = '/gemini-search/';
         });
+
+        // Navegação para Gestão de Vendedores (mostrar apenas para perfis com permissão)
+        const gestaoVendedoresBtn = document.getElementById('gestaoVendedoresBtn');
+        if (gestaoVendedoresBtn && window.authManager) {
+            const perfilId = window.authManager.getPerfilId();
+            // Mostrar para admin(1), diretor_comercial(6), gerencia_dados(10)
+            if (perfilId === 1 || perfilId === 6 || perfilId === 10) {
+                gestaoVendedoresBtn.style.display = 'inline-flex';
+            }
+            gestaoVendedoresBtn.addEventListener('click', () => {
+                window.location.href = 'gestao-vendedores.html';
+            });
+        }
     </script>
 </body>
 </html>

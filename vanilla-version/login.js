@@ -54,17 +54,19 @@ class LoginManager {
                 body: JSON.stringify({ email, senha })
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (response.ok) {
-                localStorage.setItem('currentUser', JSON.stringify(data.usuario));
-                localStorage.setItem('token', data.token);
-                this.showToast(data.mensagem, 'success');
+            if (response.ok && result.success) {
+                // Formato novo: { success: true, data: { token, usuario }, message }
+                const { token, usuario } = result.data;
+                localStorage.setItem('currentUser', JSON.stringify(usuario));
+                localStorage.setItem('token', token);
+                this.showToast(result.message || 'Login realizado com sucesso', 'success');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1000);
             } else {
-                this.showToast(data.mensagem || 'Credenciais inválidas', 'error');
+                this.showToast(result.message || 'Credenciais inválidas', 'error');
                 this.loginBtn.disabled = false;
                 this.loginBtn.innerHTML = '<i data-lucide="log-in"></i> Entrar no Sistema';
                 this.initializeLucideIcons();
