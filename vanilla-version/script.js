@@ -1568,6 +1568,9 @@ class ClientManager {
                         <button class="action-icon-btn email-btn" data-action="email" data-client-id="${client.id}" data-client-name="${this.escapeHtml(client.nome)}" data-client-email="${this.escapeHtml(client.email || '')}" title="E-mail" aria-label="Enviar E-mail para ${client.nome}">
                             <i data-lucide="mail"></i>
                         </button>
+                        <button class="action-icon-btn delete-btn" data-action="delete" data-client-id="${client.id}" title="Excluir Cliente" aria-label="Excluir ${client.nome}">
+                            <i data-lucide="trash-2"></i>
+                        </button>
                     </div>
                 </td>
                 <td class="checkbox-cell">
@@ -2798,6 +2801,12 @@ function showUserInfo() {
             userHeader.style.display = 'flex';
         }
         
+        // Mostrar botão de criar usuário apenas para administradores
+        const createUserButton = document.getElementById('createUserButton');
+        if (createUserButton && currentUser.perfil_id === 1) {
+            createUserButton.style.display = 'flex';
+        }
+        
         // Inicializar ícones Lucide no header
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -2812,7 +2821,7 @@ function setupLogout() {
     const logoutButton = document.getElementById('logoutButton');
     const logoutFromMenu = document.getElementById('logoutFromMenu');
     const comunicacaoEquipe = document.getElementById('comunicacaoEquipe');
-    const userMenuButton = document.getElementById('userMenuButton');
+    const userInfoButton = document.getElementById('userInfoButton');
     const userMenu = document.getElementById('userMenu');
     
     // Função de logout
@@ -2830,6 +2839,13 @@ function setupLogout() {
     
     if (logoutFromMenu) {
         logoutFromMenu.addEventListener('click', handleLogout);
+    }
+
+    // Evento para ir ao perfil do usuário
+    if (userInfoButton) {
+        userInfoButton.addEventListener('click', () => {
+            window.location.href = 'user-profile.html';
+        });
     }
 
     // Evento para comunicação da equipe
@@ -2881,24 +2897,6 @@ function setupLogout() {
         
         gestaoVendedores.addEventListener('click', () => {
             window.location.href = 'gestao-vendedores.html';
-        });
-    }
-    
-    // Toggle do menu do usuário
-    if (userMenuButton && userMenu) {
-        userMenuButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // Verifica se está visível (pode ser 'none', '' ou não definido)
-            const isHidden = !userMenu.style.display || userMenu.style.display === 'none';
-            userMenu.style.display = isHidden ? 'block' : 'none';
-            console.log('🔧 Menu toggle:', isHidden ? 'aberto' : 'fechado');
-        });
-        
-        // Fechar menu ao clicar fora
-        document.addEventListener('click', (e) => {
-            if (!userMenuButton.contains(e.target) && !userMenu.contains(e.target)) {
-                userMenu.style.display = 'none';
-            }
         });
     }
     

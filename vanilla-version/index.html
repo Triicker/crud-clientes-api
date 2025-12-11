@@ -17,7 +17,7 @@
         <header class="header">
             <!-- User Header -->
             <div id="userHeader" class="user-header" style="display: none;">
-                <div class="user-info">
+                <button id="userInfoButton" class="user-info-button">
                     <div class="user-avatar">
                         <i data-lucide="user" class="avatar-icon"></i>
                     </div>
@@ -25,14 +25,11 @@
                         <span class="user-name" id="userName">Usuário</span>
                         <span class="user-role" id="userRole">Cargo</span>
                     </div>
-                </div>
+                </button>
                 <div class="user-actions">
                     <button id="createUserButton" class="create-user-button" style="display: none;" title="Cadastrar Novo Usuário">
                         <i data-lucide="user-plus" class="menu-icon"></i>
                         <span>Novo Usuário</span>
-                    </button>
-                    <button id="userMenuButton" class="user-menu-button">
-                        <i data-lucide="settings" class="menu-icon"></i>
                     </button>
                     <button id="logoutButton" class="logout-button">
                         <i data-lucide="log-out" class="logout-icon"></i>

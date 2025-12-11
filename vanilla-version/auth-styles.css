@@ -7,10 +7,25 @@
     padding: 8px 16px;
 }
 
-.user-info {
+.user-info-button {
     display: flex;
     align-items: center;
     gap: 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.user-info-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.user-info-button:active {
+    transform: translateY(0);
 }
 
 .user-avatar {

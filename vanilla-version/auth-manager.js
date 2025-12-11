@@ -43,6 +43,11 @@ class AuthManager {
         return this.currentUser ? this.currentUser.perfil_id : null;
     }
 
+    // Obtém o ID do usuário atual
+    getUserId() {
+        return this.currentUser ? this.currentUser.id : null;
+    }
+
     // Carrega configuração das etapas do backend
     async loadEtapasConfig() {
         if (this.etapasConfig) return this.etapasConfig;

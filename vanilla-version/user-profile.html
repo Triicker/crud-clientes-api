@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Sistema de Clientes</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <link rel="stylesheet" href="edit-modal-styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div id="userHeader" class="user-header" style="display: none;">
+                <button id="userInfoButton" class="user-info-button">
+                    <div class="user-avatar">
+                        <i data-lucide="user" class="avatar-icon"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name" id="userName">Usuário</span>
+                        <span class="user-role" id="userRole">Cargo</span>
+                    </div>
+                </button>
+                <div class="user-actions">
+                    <button id="backButton" class="logout-button">
+                        <i data-lucide="arrow-left" class="logout-icon"></i>
+                        <span>Voltar</span>
+                    </button>
+                    <button id="backButton" class="user-menu-button" title="Voltar">
+                        <i data-lucide="arrow-left" class="menu-icon"></i>
+                        <span>Voltar</span>
+                    </button>
+                    <button id="logoutButton" class="logout-button">
+                        <i data-lucide="log-out" class="logout-icon"></i>
+                        <span>Sair</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="title-section">
+                <img 
+                    src="https://midiasave-5c064.web.app/img-game/etica-branco.png" 
+                    alt="Ética" 
+                    class="header-logo"
+                    loading="lazy"
+                />
+                <h1 class="title">Meu Perfil</h1>
+            </div>
+        </header>
+
+        <!-- Conteúdo Principal -->
+        <main class="profile-main">
+            <div class="profile-container">
+                <!-- Card de Informações Pessoais -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <div class="profile-header-left">
+                            <i data-lucide="user" class="profile-icon"></i>
+                            <h2>Informações Pessoais</h2>
+                        </div>
+                        <div class="profile-header-actions">
+                            <button id="editProfileButton" class="btn btn-primary">
+                                <i data-lucide="edit-2"></i>
+                                Editar Perfil
+                            </button>
+                            <button id="saveProfileButton" class="btn btn-success" style="display:none;">
+                                <i data-lucide="check"></i>
+                                Salvar
+                            </button>
+                            <button id="cancelEditButton" class="btn btn-secondary" style="display:none;">
+                                <i data-lucide="x"></i>
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="profile-card-body">
+                        <div class="profile-info-grid">
+                            <div class="profile-info-item">
+                                <label>Nome Completo</label>
+                                <p id="profileName" class="profile-view-value">-</p>
+                                <input type="text" id="profileNameInput" class="profile-edit-input" style="display:none;">
+                            </div>
+                            <div class="profile-info-item">
+                                <label>Email</label>
+                                <p id="profileEmail" class="profile-view-value">-</p>
+                                <input type="email" id="profileEmailInput" class="profile-edit-input" style="display:none;">
+                            </div>
+                            <div class="profile-info-item">
+                                <label>Perfil/Cargo</label>
+                                <p id="profileRole" class="profile-view-value">-</p>
+                            </div>
+                            <div class="profile-info-item">
+                                <label>Telefone</label>
+                                <p id="profilePhone" class="profile-view-value">Não informado</p>
+                                <input type="tel" id="profilePhoneInput" class="profile-edit-input" style="display:none;">
+                            </div>
+                            <div class="profile-info-item">
+                                <label>Data de Admissão</label>
+                                <p id="profileAdmissionDate" class="profile-view-value">Não informada</p>
+                            </div>
+                            <div class="profile-info-item">
+                                <label>Status</label>
+                                <p id="profileStatus" class="profile-view-value">
+                                    <span class="status-badge status-active">Ativo</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="profile-info-item full-width" id="profileObservationContainer" style="display: none;">
+                            <label>Observações</label>
+                            <p id="profileObservation" class="observation-text profile-view-value">-</p>
+                            <textarea id="profileObservationInput" class="profile-edit-input" rows="3" style="display:none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de Estatísticas -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <div class="profile-header-left">
+                            <i data-lucide="bar-chart-3" class="profile-icon"></i>
+                            <h2>Minhas Estatísticas</h2>
+                        </div>
+                    </div>
+                    <div class="profile-card-body">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <i data-lucide="users" class="stat-icon"></i>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="statClientes">0</span>
+                                    <span class="stat-label">Clientes Atribuídos</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i data-lucide="check-circle" class="stat-icon"></i>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="statTarefas">0</span>
+                                    <span class="stat-label">Tarefas Concluídas</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i data-lucide="message-square" class="stat-icon"></i>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="statInteracoes">0</span>
+                                    <span class="stat-label">Interações</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i data-lucide="target" class="stat-icon"></i>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="statMeta">0</span>
+                                    <span class="stat-label">Meta Mensal</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de Atividades Recentes -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <div class="profile-header-left">
+                            <i data-lucide="activity" class="profile-icon"></i>
+                            <h2>Atividades Recentes</h2>
+                        </div>
+                    </div>
+                    <div class="profile-card-body">
+                        <div id="recentActivities" class="activities-list">
+                            <p class="no-activities">Nenhuma atividade recente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Edição de Perfil -->
+    <div id="editProfileModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content edit-profile-modal">
+            <div class="modal-header">
+                <h2>Editar Perfil</h2>
+                <button class="close-btn" id="closeEditModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="edit-modal-body">
+                    <form id="editProfileForm" class="edit-form">
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i data-lucide="user" class="section-icon"></i>
+                                Informações Pessoais
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label for="editName">Nome Completo *</label>
+                                    <input type="text" id="editName" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editEmail">Email *</label>
+                                    <input type="email" id="editEmail" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editPhone">Telefone</label>
+                                    <input type="tel" id="editPhone" class="form-input" placeholder="(00) 00000-0000">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="editObservation">Observações</label>
+                                    <textarea id="editObservation" class="form-textarea" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i data-lucide="lock" class="section-icon"></i>
+                                Alterar Senha (opcional)
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="editPassword">Nova Senha</label>
+                                    <input type="password" id="editPassword" class="form-input" minlength="6" placeholder="Deixe em branco para não alterar">
+                                </div>
+                                <div class="form-group">
+                                    <label for="editPasswordConfirm">Confirmar Senha</label>
+                                    <input type="password" id="editPasswordConfirm" class="form-input" minlength="6">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="form-info">* Campos obrigatórios</span>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelEditProfile">Cancelar</button>
+                    <button type="submit" form="editProfileForm" class="btn btn-primary">
+                        <i data-lucide="save"></i>
+                        Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="auth-manager.js"></script>
+    <script src="api-client.js"></script>
+    <script src="user-profile.js"></script>
+</body>
+</html>
